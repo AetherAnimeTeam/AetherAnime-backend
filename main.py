@@ -29,11 +29,11 @@ async def search_anime(name: str, order: str = "popularity", status: str = "",
     return await get_animes_by_name(name, status=status, order=order, limit=limit, page=page)
 
 @app.get("/popular/")
-async def search_anime(limit: int = 10, page: int = 1):
+async def popular_anime(limit: int = 10, page: int = 1):
     return await get_animes_by_name("", limit=limit, page=page)
 
 @app.get("/detailed/")
-async def search_anime(anime_id: int):
+async def detailed_meta(anime_id: int):
     return await get_details(anime_id)
 
 @app.get("/magnet/{name}")
