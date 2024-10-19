@@ -8,7 +8,7 @@ from models.anime import Anime, AnimePreview
 def generate_graphql_request(endpoint: str, params: dict, selected_rows: list[str]):
     params = ", ".join(f'{key}:{value}' for key, value in params.items())
     base = f"{endpoint}({params})"
-    row_selection = f"{{{'\n'.join(selected_rows)}}}"
+    row_selection = "{" + '\n'.join(selected_rows) + "}"
     return f"{{{base + row_selection}}}"
 
 async def get_animes_by_name(name: str, order: str = "popularity", status: str = "latest",
