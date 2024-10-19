@@ -1,3 +1,2 @@
 run:
-    pip install -r requirements.txt
-    fastapi run
+	python -m fastapi run
