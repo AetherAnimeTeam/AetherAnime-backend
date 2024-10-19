@@ -3,8 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from anime_meta_parser import get_animes_by_name, get_details
 
-# from nyaa import AnimeFinder, TorrentEngines
-
 app = FastAPI()
 
 app.add_middleware(
