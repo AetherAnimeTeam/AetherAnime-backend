@@ -27,7 +27,7 @@ async def search_anime(name: str, order: str = "popularity", status: str = "",
     return await get_animes_by_name(name, status=status, order=order, limit=limit, page=page)
 
 @app.get("/popular/")
-async def popular_anime(limit: int = 10, page: int = 1, status: str = "popularity"):
+async def popular_anime(limit: int = 10, page: int = 1, status: str = "latest"):
     return await get_animes_by_name("", limit=limit, page=page, status=status)
 
 @app.get("/detailed/")
