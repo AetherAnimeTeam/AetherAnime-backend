@@ -16,7 +16,8 @@ async def get_animes_by_name(name: str, order: str = "popularity", status: str =
     graphql_body = generate_graphql_request("animes",
                                             {"search": f"\"{name}\"", "limit": limit, "page": page,
                                              "order": order, "status": f"\"{status}\""},
-                                            ["russian", "poster { id originalUrl }", "score", "status", "id"])
+                                            ["russian", "poster { id originalUrl }", "score", "status",
+                                             "id"])
 
     headers = { "User-Agent": "AetherAnime/1.0" }
 
@@ -30,7 +31,8 @@ async def get_details(anime_id: int) -> Anime:
                                             {"ids": f"\"{anime_id}\"", "limit": 1,  "page": 1},
                                             ["name", "russian", "description", "poster { id originalUrl }",
                                              "genres { id russian }", "score", "rating", "duration", "episodes",
-                                             "episodesAired", "releasedOn { year month day date }", "status"])
+                                             "episodesAired", "releasedOn { year month day date }", "status",
+                                             "fandubbers", "fansubbers"])
 
     headers = {"User-Agent": "AetherAnime/1.0"}
 

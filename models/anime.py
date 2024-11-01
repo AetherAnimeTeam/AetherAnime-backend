@@ -53,6 +53,8 @@ class Anime:
     duration: int
     episodes: int
     episodes_aired: int
+    fandubbers: list[str]
+    fansubbers: list[str]
 
     release_date: datetime
     status: AnimeStatus
@@ -75,6 +77,8 @@ class Anime:
         self.duration = anime_dict["duration"]
         self.episodes = anime_dict["episodes"]
         self.episodes_aired = anime_dict["episodesAired"]
+        self.fansubbers = anime_dict["fansubbers"]
+        self.fandubbers = anime_dict["fandubbers"]
         self.release_date = anime_dict["releasedOn"]
         self.status = AnimeStatus[anime_dict["status"].upper()]
 
