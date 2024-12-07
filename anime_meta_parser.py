@@ -30,12 +30,13 @@ async def get_details(anime_id: int) -> Anime:
     graphql_body = generate_graphql_request("animes",
                                             {"ids": f"\"{anime_id}\"", "limit": 1,  "page": 1},
                                             ["name", "russian", "description", "poster { id originalUrl }",
-                                             "genres { id russian }", "score", "rating", "duration", "episodes",
-                                             "episodesAired", "releasedOn { year month day date }", "status",
+                                             "genres { id russian }", "score", "scoresStats {count score}", "rating", "duration", "episodes",
+                                             "episodesAired", "releasedOn { year month day date }", "status", "studios { name }",
                                              "fandubbers", "fansubbers"])
 
     headers = {"User-Agent": "AetherAnime/1.0"}
 
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.post("https://shikimori.one/api/graphql", json={"query": graphql_body}) as response:
+            # print(await response.text())
             return Anime((await response.json())["data"]["animes"][0])

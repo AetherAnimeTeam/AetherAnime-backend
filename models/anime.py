@@ -44,11 +44,12 @@ class Anime:
     genres: list[Genre]
 
     score: float
+    score_count: int
     age_rating: str
 
-    # TODO: find author and studio
+    # TODO: find author
     # author: str
-    # studio: str
+    studios: str
 
     duration: int
     episodes: int
@@ -66,6 +67,7 @@ class Anime:
     trailer_url: Optional[str] = None
 
     def __init__(self, anime_dict):
+        # print(anime_dict)
         self.name_ru = anime_dict["russian"]
         self.name_original = anime_dict["name"]
         self.description = anime_dict.get("description", "Описание отсутствует")
@@ -73,9 +75,11 @@ class Anime:
         self.genres = [Genre(id_=genre["id"], name=genre["russian"])
                   for genre in anime_dict["genres"]]
         self.score = anime_dict["score"]
+        self.score_count = sum(stat["count"] for stat in anime_dict["scoresStats"])
         self.age_rating = anime_dict["rating"]
         self.duration = anime_dict["duration"]
         self.episodes = anime_dict["episodes"]
+        self.studios = anime_dict["studios"]
         self.episodes_aired = anime_dict["episodesAired"]
         self.fansubbers = anime_dict["fansubbers"]
         self.fandubbers = anime_dict["fandubbers"]
