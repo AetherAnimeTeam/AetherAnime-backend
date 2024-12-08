@@ -1,0 +1,6 @@
+Django==5.1.4
+djangorestframework==3.15.2
+pillow==11.0.0
+psycopg2-binary==2.9.10
+social-auth-app-django==5.4.2
+social-auth-core==4.5.4
