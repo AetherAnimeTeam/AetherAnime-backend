@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "user_auth",
     "social_django",
+    "comments",
 ]
 
 AUTHENTICATION_BACKENDS = [
