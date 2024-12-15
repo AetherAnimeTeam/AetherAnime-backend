@@ -7,7 +7,15 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ['id', 'anime_id', 'reply_to', 'user', 'content', 'created_at', 'replies']
+        fields = [
+            "id",
+            "anime_id",
+            "reply_to",
+            "user",
+            "content",
+            "created_at",
+            "replies",
+        ]
 
     def get_replies(self, obj):
         if obj.replies.exists():
@@ -18,16 +26,16 @@ class CommentSerializer(serializers.ModelSerializer):
 class WatchedHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = WatchedHistory
-        fields = ['id', 'anime_id', 'season', 'episode', 'timestamp', 'user']
+        fields = ["id", "anime_id", "season", "episode", "timestamp", "user"]
 
 
 class AnimeStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnimeStatus
-        fields = ['id', 'anime_id', 'status', 'user']
+        fields = ["id", "anime_id", "status", "user"]
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = ['id', 'anime_id', 'content', 'user', 'created_at']
+        fields = ["id", "anime_id", "content", "user", "created_at"]

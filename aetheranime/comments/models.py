@@ -5,7 +5,7 @@ from django.conf import settings
 class Comment(models.Model):
     anime_id = models.IntegerField()
     reply_to = models.ForeignKey(
-        'self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies'
+        "self", null=True, blank=True, on_delete=models.CASCADE, related_name="replies"
     )
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     content = models.TextField()
@@ -21,10 +21,10 @@ class WatchedHistory(models.Model):
 
 
 class Status(models.TextChoices):
-    WATCHED = 'watched', 'Просмотрено'
-    WATCHING = 'watching', 'Смотрю'
-    PAUSED = 'paused', 'Отложено'
-    DROPPED = 'dropped', 'Брошено'
+    WATCHED = "watched", "Просмотрено"
+    WATCHING = "watching", "Смотрю"
+    PAUSED = "paused", "Отложено"
+    DROPPED = "dropped", "Брошено"
 
 
 class AnimeStatus(models.Model):

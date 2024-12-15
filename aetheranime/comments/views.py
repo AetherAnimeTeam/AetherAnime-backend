@@ -3,7 +3,11 @@ from rest_framework.response import Response
 from rest_framework import status, generics
 from django.shortcuts import get_object_or_404
 from .models import Comment, WatchedHistory, AnimeStatus, Review
-from .serializers import CommentSerializer, WatchedHistorySerializer, AnimeStatusSerializer
+from .serializers import (
+    CommentSerializer,
+    WatchedHistorySerializer,
+    AnimeStatusSerializer,
+)
 
 
 class GetCommentsAPIView(APIView):
@@ -13,9 +17,9 @@ class GetCommentsAPIView(APIView):
         else:
             comments = Comment.objects.filter(anime_id=anime_id, reply_to__isnull=True)
 
-        n = min(int(request.query_params.get('n', 20)), 20)
-        page = int(request.query_params.get('page', 1))
-        comments = comments[(page - 1) * n:page * n]
+        n = min(int(request.query_params.get("n", 20)), 20)
+        page = int(request.query_params.get("page", 1))
+        comments = comments[(page - 1) * n : page * n]
 
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
@@ -35,8 +39,9 @@ class SetStatusAPIView(APIView):
         serializer = AnimeStatusSerializer(data=request.data)
         if serializer.is_valid():
             AnimeStatus.objects.update_or_create(
-                user=request.user, anime_id=serializer.validated_data['anime_id'],
-                defaults={'status': serializer.validated_data['status']}
+                user=request.user,
+                anime_id=serializer.validated_data["anime_id"],
+                defaults={"status": serializer.validated_data["status"]},
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -44,6 +49,10 @@ class SetStatusAPIView(APIView):
 
 class RemoveStatusAPIView(APIView):
     def delete(self, request, anime_id):
-        status_obj = get_object_or_404(AnimeStatus, user=request.user, anime_id=anime_id)
+        status_obj = get_object_or_404(
+            AnimeStatus, user=request.user, anime_id=anime_id
+        )
         status_obj.delete()
-        return Response({"message": "Status removed"}, status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {"message": "Status removed"}, status=status.HTTP_204_NO_CONTENT
+        )
