@@ -1,12 +1,15 @@
+import asyncio
+
+from asgiref.sync import sync_to_async
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from django.http import JsonResponse
 
-from utils.anime_meta_parser import get_animes_by_name, get_details
 from .models import Anime, Genre, AnimePreview
 from .serializers import AnimeSerializer, GenreSerializer, AnimePreviewSerializer
+from utils.anime_meta_parser import get_animes_by_name, get_details
 
 
 @api_view(["GET"])
@@ -35,10 +38,10 @@ def popular_anime(request):
     data = get_animes_by_name("", limit=limit, page=page, status=status)
     return Response(data)
 
-
 @api_view(["GET"])
 def detailed_meta(request, anime_id):
     data = get_details(anime_id)
+    print(data)
     return Response(data)
 
 
