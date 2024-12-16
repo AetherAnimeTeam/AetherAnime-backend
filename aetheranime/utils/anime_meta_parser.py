@@ -90,14 +90,18 @@ async def get_details(anime_id: int) -> Anime:
                 "name_original": anime_data["name"],
                 "description": anime_data.get("description", "Описание отсутствует"),
                 "poster_url": anime_data["poster"]["originalUrl"],
-                "genres": [{"id": g["id"], "name": g["russian"]} for g in anime_data["genres"]],
+                "genres": [
+                    {"id": g["id"], "name": g["russian"]} for g in anime_data["genres"]
+                ],
                 "score": anime_data["score"],
                 "score_count": sum(stat["count"] for stat in anime_data["scoresStats"]),
                 "age_rating": anime_data["rating"],
                 "duration": anime_data["duration"],
                 "episodes": anime_data["episodes"],
                 "episodes_aired": anime_data["episodesAired"],
-                "studios": ", ".join([studio["name"] for studio in anime_data["studios"]]),
+                "studios": ", ".join(
+                    [studio["name"] for studio in anime_data["studios"]]
+                ),
                 "fandubbers": anime_data["fandubbers"],
                 "fansubbers": anime_data["fansubbers"],
                 "release_date": anime_data["releasedOn"],
