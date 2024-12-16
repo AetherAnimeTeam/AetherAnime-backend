@@ -45,7 +45,6 @@ def detailed_meta(request, anime_id):
     return Response(serializer.data)
 
 
-
 @api_view(["GET"])
 def search_magnet(request, name):
     return Response({"list": []})

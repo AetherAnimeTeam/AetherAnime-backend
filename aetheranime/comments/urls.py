@@ -7,9 +7,9 @@ from .views import (
 )
 
 urlpatterns = [
-    path("comments/<int:anime_id>/", GetCommentsAPIView.as_view(), name="get_comments"),
+    path("<int:anime_id>/", GetCommentsAPIView.as_view(), name="get_comments"),
     path(
-        "comments/<int:anime_id>/<int:comment_id>/",
+        "<int:anime_id>/<int:comment_id>/",
         GetCommentsAPIView.as_view(),
         name="get_replies",
     ),

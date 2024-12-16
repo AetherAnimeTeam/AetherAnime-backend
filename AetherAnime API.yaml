@@ -1,0 +1,268 @@
+openapi: 3.0.3
+info:
+  title: AetherAnime API
+  version: 1.0.0
+  description: Документация API для приложения AetherAnime
+paths:
+  /animes/:
+    get:
+      operationId: animes_retrieve
+      tags:
+      - animes
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /animes/anime/{anime_id}/:
+    get:
+      operationId: animes_anime_retrieve
+      parameters:
+      - in: path
+        name: anime_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - animes
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Anime'
+          description: ''
+  /animes/detailed/{anime_id}/:
+    get:
+      operationId: animes_detailed_retrieve
+      parameters:
+      - in: path
+        name: anime_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - animes
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /animes/genres/:
+    get:
+      operationId: animes_genres_list
+      tags:
+      - animes
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Genre'
+          description: ''
+  /animes/magnet/{name}/:
+    get:
+      operationId: animes_magnet_retrieve
+      parameters:
+      - in: path
+        name: name
+        schema:
+          type: string
+        required: true
+      tags:
+      - animes
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /animes/popular/:
+    get:
+      operationId: animes_popular_retrieve
+      tags:
+      - animes
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /animes/previews/:
+    get:
+      operationId: animes_previews_list
+      tags:
+      - animes
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AnimePreview'
+          description: ''
+  /animes/search/:
+    get:
+      operationId: animes_search_retrieve
+      tags:
+      - animes
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/register/:
+    post:
+      operationId: api_register_create
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+components:
+  schemas:
+    Anime:
+      type: object
+      properties:
+        name_ru:
+          type: string
+          maxLength: 255
+        name_original:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        poster_url:
+          type: string
+          format: uri
+          maxLength: 200
+        genres:
+          type: array
+          items:
+            $ref: '#/components/schemas/Genre'
+        score:
+          type: number
+          format: double
+        score_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        age_rating:
+          type: string
+          maxLength: 20
+        studios:
+          type: string
+          maxLength: 255
+        duration:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        episodes:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        episodes_aired:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        fandubbers: {}
+        fansubbers: {}
+        release_date:
+          type: string
+          format: date
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        related_material:
+          nullable: true
+        trailer_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+      required:
+      - age_rating
+      - description
+      - duration
+      - episodes
+      - episodes_aired
+      - genres
+      - name_original
+      - name_ru
+      - poster_url
+      - release_date
+      - score
+      - score_count
+      - status
+      - studios
+    AnimePreview:
+      type: object
+      properties:
+        anime_id:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        name_ru:
+          type: string
+          maxLength: 255
+        poster_url:
+          type: string
+          format: uri
+          maxLength: 200
+        score:
+          type: number
+          format: double
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+      required:
+      - anime_id
+      - name_ru
+      - poster_url
+      - score
+      - status
+    Genre:
+      type: object
+      properties:
+        id:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        name:
+          type: string
+          maxLength: 255
+      required:
+      - id
+      - name
+    StatusEnum:
+      enum:
+      - ANONS
+      - ONGOING
+      - RELEASED
+      type: string
+      description: |-
+        * `ANONS` - Анонсирован
+        * `ONGOING` - Онгоинг
+        * `RELEASED` - Вышел
+  securitySchemes:
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"
