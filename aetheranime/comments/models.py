@@ -22,6 +22,7 @@ class WatchedHistory(models.Model):
 
 class Status(models.TextChoices):
     WATCHED = "watched", "Просмотрено"
+    PLANNED = "planned", "В планах"
     WATCHING = "watching", "Смотрю"
     PAUSED = "paused", "Отложено"
     DROPPED = "dropped", "Брошено"

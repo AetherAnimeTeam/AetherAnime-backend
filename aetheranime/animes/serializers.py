@@ -39,3 +39,11 @@ class AnimeSerializer(serializers.ModelSerializer):
             "related_material",
             "trailer_url",
         ]
+
+    def create(self, validated_data):
+        genres_data = validated_data.pop("genres")
+        anime = Anime.objects.create(**validated_data)
+        for genre_data in genres_data:
+            genre, created = Genre.objects.get_or_create(**genre_data)
+            anime.genres.add(genre)
+        return anime

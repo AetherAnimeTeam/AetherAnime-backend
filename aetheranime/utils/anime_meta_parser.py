@@ -1,5 +1,6 @@
 import aiohttp
 
+from animes.serializers import AnimeSerializer
 from animes.models import Anime, AnimePreview
 
 
@@ -44,6 +45,14 @@ async def get_animes_by_name(
             ]
 
 
+async def save_anime_to_db(anime_data: dict) -> Anime:
+    serializer = AnimeSerializer(data=anime_data)
+    if serializer.is_valid():
+        return serializer.save()
+    else:
+        raise ValueError(f"Invalid data: {serializer.errors}")
+
+
 async def get_details(anime_id: int) -> Anime:
     graphql_body = generate_graphql_request(
         "animes",
@@ -60,7 +69,7 @@ async def get_details(anime_id: int) -> Anime:
             "duration",
             "episodes",
             "episodesAired",
-            "releasedOn { year month day date }",
+            "releasedOn",
             "status",
             "studios { name }",
             "fandubbers",
@@ -74,5 +83,26 @@ async def get_details(anime_id: int) -> Anime:
         async with session.post(
             "https://shikimori.one/api/graphql", json={"query": graphql_body}
         ) as response:
-            # print(await response.text())
-            return Anime((await response.json())["data"]["animes"][0])
+            anime_data = (await response.json())["data"]["animes"][0]
+
+            adapted_anime_data = {
+                "name_ru": anime_data["russian"],
+                "name_original": anime_data["name"],
+                "description": anime_data.get("description", "Описание отсутствует"),
+                "poster_url": anime_data["poster"]["originalUrl"],
+                "genres": [{"id": g["id"], "name": g["russian"]} for g in anime_data["genres"]],
+                "score": anime_data["score"],
+                "score_count": sum(stat["count"] for stat in anime_data["scoresStats"]),
+                "age_rating": anime_data["rating"],
+                "duration": anime_data["duration"],
+                "episodes": anime_data["episodes"],
+                "episodes_aired": anime_data["episodesAired"],
+                "studios": ", ".join([studio["name"] for studio in anime_data["studios"]]),
+                "fandubbers": anime_data["fandubbers"],
+                "fansubbers": anime_data["fansubbers"],
+                "release_date": anime_data["releasedOn"],
+                "status": anime_data["status"],
+                "related_material": None,
+                "trailer_url": None,
+            }
+            return await save_anime_to_db(adapted_anime_data)
