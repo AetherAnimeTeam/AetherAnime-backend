@@ -38,8 +38,9 @@ def popular_anime(request):
 
 @api_view(["GET"])
 def detailed_meta(request, anime_id):
-    data = get_details(anime_id)
-    return Response(data)
+    anime_object = get_details(anime_id)
+    serializer = AnimeSerializer(anime_object)
+    return Response(serializer.data)
 
 
 @api_view(["GET"])
