@@ -3,9 +3,9 @@ from enum import Enum
 
 
 class AnimeStatus(models.TextChoices):
-    ANONS = "ANONS", "Анонсирован"
-    ONGOING = "ONGOING", "Онгоинг"
-    RELEASED = "RELEASED", "Вышел"
+    ANONS = "anons", "Анонсирован"
+    ONGOING = "ongoing", "Онгоинг"
+    RELEASED = "released", "Вышел"
 
 
 class Genre(models.Model):
@@ -50,7 +50,9 @@ class Anime(models.Model):
     fandubbers = models.JSONField(default=list)
     fansubbers = models.JSONField(default=list)
 
-    release_date = models.DateField()
+    release_date = models.DateField(null=True, blank=True)
+    aired_date = models.DateField(null=True, blank=True)
+
     status = models.CharField(
         max_length=20,
         choices=AnimeStatus.choices,
