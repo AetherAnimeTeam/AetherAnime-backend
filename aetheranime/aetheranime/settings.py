@@ -117,7 +117,7 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "aetheranime",
-        "USER": "root",
+        "USER": "postgres",
         "PASSWORD": "root",
         "HOST": "127.0.0.1",
         "PORT": "5432",
@@ -126,7 +126,6 @@ DATABASES = {
         },
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
