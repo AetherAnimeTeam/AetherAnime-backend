@@ -12,9 +12,11 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+load_dotenv(os.path.join(BASE_DIR, '.env.dev'))
 
 
 # Quick-start development settings - unsuitable for production
@@ -28,7 +30,11 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 
 DEBUG = bool(os.environ.get("DEBUG", default=0))
 
-ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
+allowed_hosts = os.environ.get("DJANGO_ALLOWED_HOSTS")
+if allowed_hosts:
+    ALLOWED_HOSTS = allowed_hosts.split(" ")
+else:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "[::1]"]
 
 
 AUTH_USER_MODEL = "user_auth.CustomUser"

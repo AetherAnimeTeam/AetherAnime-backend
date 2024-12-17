@@ -40,18 +40,13 @@ def popular_anime(request):
 
 @api_view(["GET"])
 def detailed_meta(request, anime_id):
-    anime_object = get_details(anime_id)
+    try:
+        anime_object = Anime.objects.get(pk=anime_id)
+    except Anime.DoesNotExist:
+        return Response({"error": "Anime with this ID does not exist"}, status=404,)
 
-    if isinstance(anime_object, Anime):
-        anime_data = AnimeSerializer(anime_object).data
-    else:
-        anime_data = anime_object
-
-    serializer = AnimeSerializer(data=anime_data)
-
-    if serializer.is_valid():
-        return Response(serializer.validated_data)
-    return Response(serializer.errors, status=400)
+    serializer = AnimeSerializer(anime_object)
+    return Response(serializer.data)
 
 
 @api_view(["GET"])
