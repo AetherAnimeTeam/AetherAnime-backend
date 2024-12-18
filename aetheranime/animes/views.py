@@ -10,6 +10,10 @@ from django.http import JsonResponse
 from .models import Anime, Genre, AnimePreview
 from .serializers import AnimeSerializer, GenreSerializer, AnimePreviewSerializer
 from utils.anime_meta_parser import get_animes_by_name, get_details
+from django.db.models import Count
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from user_auth.models import Status
 
 
 @api_view(["GET"])
@@ -71,3 +75,14 @@ class AnimeDetailView(RetrieveAPIView):
 class GenreListView(ListAPIView):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+
+
+@api_view(["GET"])
+def anime_status_summary(request, anime_id):
+    statuses = (
+        Status.objects.filter(anime_id=anime_id)
+        .values("status")
+        .annotate(count=Count("status"))
+    )
+    data = {status["status"]: status["count"] for status in statuses}
+    return Response(data)
