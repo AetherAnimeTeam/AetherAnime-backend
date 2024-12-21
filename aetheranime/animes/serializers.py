@@ -11,7 +11,7 @@ class GenreSerializer(serializers.ModelSerializer):
 class AnimePreviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnimePreview
-        fields = ["anime_id", "name_ru", "poster_url", "score", "status"]
+        fields = "__all__"
 
 
 class AnimeSerializer(serializers.ModelSerializer):

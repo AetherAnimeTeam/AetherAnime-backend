@@ -15,6 +15,10 @@ class CustomUser(AbstractUser):
     email = models.TextField(
         unique=True,
     )
+    is_verified = models.BooleanField(
+        default=False,
+        verbose_name="Verified User",
+    )
 
     def __str__(self):
         return self.username

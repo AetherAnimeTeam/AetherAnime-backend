@@ -35,19 +35,20 @@ def search_anime(request):
 
 @api_view(["GET"])
 def popular_anime(request):
-    limit = int(request.GET.get("limit", 10))
-    page = int(request.GET.get("page", 1))
-    status = request.GET.get("status", "latest")
+    previews = AnimePreview.objects.all()
+    serializer = AnimePreviewSerializer(previews, many=True)
+    return Response(serializer.data)
 
-    data = get_animes_by_name("", limit=limit, page=page, status=status)
-    return Response(data)
 
 @api_view(["GET"])
 def detailed_meta(request, anime_id):
     try:
         anime_object = Anime.objects.get(pk=anime_id)
     except Anime.DoesNotExist:
-        return Response({"error": "Anime with this ID does not exist"}, status=404,)
+        return Response(
+            {"error": "Anime with this ID does not exist"},
+            status=404,
+        )
 
     serializer = AnimeSerializer(anime_object)
     return Response(serializer.data)

@@ -37,10 +37,13 @@ def get_animes_by_name(
 
     headers = {"User-Agent": "AetherAnime/1.0"}
 
-    response = requests.post("https://shikimori.one/api/graphql", json={"query": graphql_body}, headers=headers)
+    response = requests.post(
+        "https://shikimori.one/api/graphql",
+        json={"query": graphql_body},
+        headers=headers,
+    )
     return [
-        AnimePreview(anime_json)
-        for anime_json in (response.json())["data"]["animes"]
+        AnimePreview(anime_json) for anime_json in (response.json())["data"]["animes"]
     ]
     # async with aiohttp.ClientSession(headers=headers) as session:
     #     async with session.post(
@@ -51,6 +54,7 @@ def get_animes_by_name(
     #             for anime_json in (await response.json())["data"]["animes"]
     #         ]
 
+
 def save_anime_to_db(anime_data: dict) -> Anime:
     serializer = AnimeSerializer(data=anime_data)
     if serializer.is_valid():
@@ -58,19 +62,39 @@ def save_anime_to_db(anime_data: dict) -> Anime:
     else:
         raise ValueError(f"Invalid data: {serializer.errors}")
 
+
 def get_details(anime_id: int) -> Anime:
     graphql_body = generate_graphql_request(
         "animes",
-        {"ids": f"\"{anime_id}\"", "limit": 1,  "page": 1},
+        {"ids": f'"{anime_id}"', "limit": 1, "page": 1},
         [
-            "name", "russian", "description", "poster { id originalUrl }",
-            "genres { id russian }", "score", "scoresStats {count score}", "rating", "duration", "episodes",
-            "episodesAired", "releasedOn { date }", "airedOn { date }",  "status", "studios { name }",
-            "fandubbers", "fansubbers"])
+            "name",
+            "russian",
+            "description",
+            "poster { id originalUrl }",
+            "genres { id russian }",
+            "score",
+            "scoresStats {count score}",
+            "rating",
+            "duration",
+            "episodes",
+            "episodesAired",
+            "releasedOn { date }",
+            "airedOn { date }",
+            "status",
+            "studios { name }",
+            "fandubbers",
+            "fansubbers",
+        ],
+    )
 
     headers = {"User-Agent": "AetherAnime/1.0"}
 
-    response = requests.post("https://shikimori.one/api/graphql", json={"query": graphql_body}, headers=headers)
+    response = requests.post(
+        "https://shikimori.one/api/graphql",
+        json={"query": graphql_body},
+        headers=headers,
+    )
 
     # async with aiohttp.ClientSession(headers=headers) as session:
     #     async with session.post(
@@ -84,18 +108,14 @@ def get_details(anime_id: int) -> Anime:
         "name_original": anime_data["name"],
         "description": anime_data.get("description", "Описание отсутствует"),
         "poster_url": anime_data["poster"]["originalUrl"],
-        "genres": [
-            {"id": g["id"], "name": g["russian"]} for g in anime_data["genres"]
-        ],
+        "genres": [{"id": g["id"], "name": g["russian"]} for g in anime_data["genres"]],
         "score": anime_data["score"],
         "score_count": sum(stat["count"] for stat in anime_data["scoresStats"]),
         "age_rating": anime_data["rating"],
         "duration": anime_data["duration"],
         "episodes": anime_data["episodes"],
         "episodes_aired": anime_data["episodesAired"],
-        "studios": ", ".join(
-            [studio["name"] for studio in anime_data["studios"]]
-        ),
+        "studios": ", ".join([studio["name"] for studio in anime_data["studios"]]),
         "fandubbers": anime_data["fandubbers"],
         "fansubbers": anime_data["fansubbers"],
         "release_date": anime_data["releasedOn"]["date"],
