@@ -5,10 +5,15 @@ from .models import Anime, Genre, AnimePreview
 from user_auth.models import CustomUser, Status
 from .serializers import AnimePreviewSerializer  # импортируем сериализатор
 
+
 class AnimeAppTests(APITestCase):
     def setUp(self):
-        self.user_1 = CustomUser.objects.create_user(username="testuser1", password="password", email="testuser1@example.com")
-        self.user_2 = CustomUser.objects.create_user(username="testuser2", password="password", email="testuser2@example.com")
+        self.user_1 = CustomUser.objects.create_user(
+            username="testuser1", password="password", email="testuser1@example.com"
+        )
+        self.user_2 = CustomUser.objects.create_user(
+            username="testuser2", password="password", email="testuser2@example.com"
+        )
 
         self.genre = Genre.objects.create(id=1, name="Action")
         self.anime = Anime.objects.create(
@@ -38,7 +43,9 @@ class AnimeAppTests(APITestCase):
         )
 
         Status.objects.create(user=self.user_1, anime_id=self.anime.id, status="active")
-        Status.objects.create(user=self.user_2, anime_id=self.anime.id, status="inactive")
+        Status.objects.create(
+            user=self.user_2, anime_id=self.anime.id, status="inactive"
+        )
 
     # def test_popular_anime(self):
     #     url = reverse("search_anime") + "?status=latest"

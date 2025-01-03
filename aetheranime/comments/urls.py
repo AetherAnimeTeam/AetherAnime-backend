@@ -14,6 +14,4 @@ urlpatterns = [
         name="get_replies",
     ),
     path("history/", AddWatchedHistoryAPIView.as_view(), name="add_watched"),
-    path("status/", SetStatusAPIView.as_view(), name="set_status"),
-    path("status/<int:anime_id>/", RemoveStatusAPIView.as_view(), name="remove_status"),
 ]

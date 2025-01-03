@@ -15,13 +15,6 @@ class UserRegistrationViewTests(TestCase):
             "username": "testuser",
             "email": "testuser@example.com",
             "password": "password123",
-            "password2": "password123",
-        }
-        self.invalid_data = {
-            "username": "testuser",
-            "email": "testuser@example.com",
-            "password": "password123",
-            "password2": "password456",
         }
 
     def test_user_registration_success(self):
@@ -29,8 +22,13 @@ class UserRegistrationViewTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn("message", response.data)
 
-    def test_user_registration_password_mismatch(self):
-        response = self.client.post(self.register_url, data=self.invalid_data)
+    def test_user_registration_missing_fields(self):
+        invalid_data = {
+            "username": "testuser",
+            "email": "testuser@example.com",
+            # Пароль отсутствует
+        }
+        response = self.client.post(self.register_url, data=invalid_data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("password", response.data)
 

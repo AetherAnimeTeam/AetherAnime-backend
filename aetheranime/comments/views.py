@@ -8,6 +8,7 @@ from .serializers import (
     WatchedHistorySerializer,
     AnimeStatusSerializer,
 )
+from rest_framework.pagination import PageNumberPagination
 
 
 class GetCommentsAPIView(APIView):
@@ -15,14 +16,17 @@ class GetCommentsAPIView(APIView):
         if comment_id:
             comments = Comment.objects.filter(reply_to_id=comment_id)
         else:
-            comments = Comment.objects.filter(anime_id=anime_id, reply_to__isnull=True)
+            comments = Comment.objects.filter(
+                anime_id=anime_id,
+                reply_to__isnull=True,
+            )
 
-        n = min(int(request.query_params.get("n", 20)), 20)
-        page = int(request.query_params.get("page", 1))
-        comments = comments[(page - 1) * n : page * n]
+        paginator = PageNumberPagination()
+        paginator.page_size = request.query_params.get("page_size", 20)
+        paginated_comments = paginator.paginate_queryset(comments, request)
 
-        serializer = CommentSerializer(comments, many=True)
-        return Response(serializer.data)
+        serializer = CommentSerializer(paginated_comments, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
 
 class AddWatchedHistoryAPIView(APIView):
@@ -50,9 +54,7 @@ class SetStatusAPIView(APIView):
 class RemoveStatusAPIView(APIView):
     def delete(self, request, anime_id):
         status_obj = get_object_or_404(
-            AnimeStatus, user=request.user, anime_id=anime_id
+            AnimeStatus, user=request.user, anime_id=anime_id,
         )
         status_obj.delete()
-        return Response(
-            {"message": "Status removed"}, status=status.HTTP_204_NO_CONTENT
-        )
+        return Response(status=status.HTTP_204_NO_CONTENT)

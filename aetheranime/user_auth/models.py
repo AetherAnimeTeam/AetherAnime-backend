@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+import random
+import string
 
 
 class CustomUser(AbstractUser):
@@ -19,9 +21,26 @@ class CustomUser(AbstractUser):
         default=False,
         verbose_name="Verified User",
     )
+    tag = models.CharField(
+        max_length=10,
+        unique=True,
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return self.username
+
+    def generate_unique_tag(self):
+        while True:
+            tag = ''.join(random.choices(string.digits, k=4))
+            if not CustomUser.objects.filter(tag=tag).exists():
+                return tag
+
+    def save(self, *args, **kwargs):
+        if not self.tag:
+            self.tag = self.generate_unique_tag()
+        super().save(*args, **kwargs)
 
 
 class History(models.Model):
