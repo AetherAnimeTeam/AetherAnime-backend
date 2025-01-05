@@ -4,6 +4,7 @@ from .models import Comment, WatchedHistory, AnimeStatus, Review
 
 class CommentSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField()
+    reply_to = serializers.PrimaryKeyRelatedField(queryset=Comment.objects.all(), required=False, allow_null=True)
 
     class Meta:
         model = Comment
@@ -16,11 +17,26 @@ class CommentSerializer(serializers.ModelSerializer):
             "created_at",
             "replies",
         ]
-
+    
     def get_replies(self, obj):
+        # Получение всех ответов для данного комментария
         if obj.replies.exists():
             return CommentSerializer(obj.replies.all(), many=True).data
         return []
+
+    def create(self, validated_data):
+        """
+        Переопределяем метод создания комментария, чтобы при создании ответа на комментарий
+        корректно обрабатывался `reply_to`.
+        """
+        reply_to = validated_data.get('reply_to', None)
+        if reply_to:
+            # Это ответ на другой комментарий
+            validated_data['reply_to'] = reply_to
+        
+        # Создание нового комментария
+        comment = Comment.objects.create(**validated_data)
+        return comment
 
 
 class WatchedHistorySerializer(serializers.ModelSerializer):

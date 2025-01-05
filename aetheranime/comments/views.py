@@ -1,20 +1,18 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, generics
-from django.shortcuts import get_object_or_404
-from .models import Comment, WatchedHistory, AnimeStatus, Review
-from .serializers import (
-    CommentSerializer,
-    WatchedHistorySerializer,
-    AnimeStatusSerializer,
-)
+from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
+from django.shortcuts import get_object_or_404
+from .models import Comment
+from .serializers import CommentSerializer
 
 
 class GetCommentsAPIView(APIView):
     def get(self, request, anime_id, comment_id=None):
         if comment_id:
-            comments = Comment.objects.filter(reply_to_id=comment_id)
+            comments = Comment.objects.filter(
+                reply_to_id=comment_id,
+            )
         else:
             comments = Comment.objects.filter(
                 anime_id=anime_id,
@@ -29,32 +27,57 @@ class GetCommentsAPIView(APIView):
         return paginator.get_paginated_response(serializer.data)
 
 
-class AddWatchedHistoryAPIView(APIView):
-    def post(self, request):
-        serializer = WatchedHistorySerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class SetStatusAPIView(APIView):
-    def post(self, request):
-        serializer = AnimeStatusSerializer(data=request.data)
-        if serializer.is_valid():
-            AnimeStatus.objects.update_or_create(
-                user=request.user,
-                anime_id=serializer.validated_data["anime_id"],
-                defaults={"status": serializer.validated_data["status"]},
+class AddCommentAPIView(APIView):
+    def post(self, request, anime_id):
+        text = request.data.get("text", "")
+        if not text:
+            return Response(
+                {"error": "text is required"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-class RemoveStatusAPIView(APIView):
-    def delete(self, request, anime_id):
-        status_obj = get_object_or_404(
-            AnimeStatus, user=request.user, anime_id=anime_id,
+        # Создаем новый комментарий
+        comment = Comment.objects.create(
+            anime_id=anime_id, user=request.user, content=text, reply_to=None
         )
-        status_obj.delete()
+
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class AddReplyAPIView(APIView):
+    def post(self, request, anime_id, comment_id):
+        text = request.data.get("text", "")
+        if not text:
+            return Response(
+                {"error": "text is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        parent_comment = get_object_or_404(Comment, pk=comment_id)
+
+        reply = Comment.objects.create(
+            anime_id=anime_id,
+            user=request.user,
+            content=text,
+            reply_to=parent_comment,
+        )
+
+        serializer = CommentSerializer(reply)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class DeleteCommentAPIView(APIView):
+    def delete(self, request, comment_id):
+        comment = get_object_or_404(Comment, pk=comment_id)
+
+        if comment.replies.exists():
+            comment.content = None
+            comment.save()
+            return Response(
+                {"message": "Comment content has been deleted, but replies are kept."},
+                status=status.HTTP_200_OK,
+            )
+
+        comment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

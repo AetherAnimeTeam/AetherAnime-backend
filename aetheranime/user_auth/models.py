@@ -33,7 +33,7 @@ class CustomUser(AbstractUser):
 
     def generate_unique_tag(self):
         while True:
-            tag = ''.join(random.choices(string.digits, k=4))
+            tag = "".join(random.choices(string.digits, k=4))
             if not CustomUser.objects.filter(tag=tag).exists():
                 return tag
 

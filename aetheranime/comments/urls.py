@@ -1,9 +1,9 @@
 from django.urls import path
 from .views import (
     GetCommentsAPIView,
-    AddWatchedHistoryAPIView,
-    SetStatusAPIView,
-    RemoveStatusAPIView,
+    AddCommentAPIView,
+    AddReplyAPIView,
+    DeleteCommentAPIView,
 )
 
 urlpatterns = [
@@ -13,5 +13,13 @@ urlpatterns = [
         GetCommentsAPIView.as_view(),
         name="get_replies",
     ),
-    path("history/", AddWatchedHistoryAPIView.as_view(), name="add_watched"),
+    path(
+        "<int:anime_id>/", AddCommentAPIView.as_view(), name="add_comment"
+    ),  # для создания комментария
+    path(
+        "<int:anime_id>/<int:comment_id>/", AddReplyAPIView.as_view(), name="add_reply"
+    ),  # для создания ответа
+    path(
+        "<int:comment_id>/", DeleteCommentAPIView.as_view(), name="delete_comment"
+    ),  # для удаления комментария
 ]
