@@ -2,28 +2,33 @@ from rest_framework import serializers
 from .models import CustomUser
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.settings import api_settings
+from datetime import timedelta
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data['expires_in'] = int(api_settings.ACCESS_TOKEN_LIFETIME.total_seconds())
+        return data
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    date_of_birth = serializers.DateField(
-        required=False,
-        allow_null=True,
-    )
-    profile_picture = serializers.ImageField(
-        required=False,
-        allow_null=True,
-    )
+    date_of_birth = serializers.DateField(required=False, allow_null=True)
+    profile_picture = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = CustomUser
-        fields = [
-            "username",
-            "email",
-            "password",
-            "date_of_birth",
-            "profile_picture",
-        ]
+        fields = ["username", "email", "password", "date_of_birth", "profile_picture"]
         extra_kwargs = {"password": {"write_only": True}}
+
+    def validate_password(self, value):
+        try:
+            validate_password(value)
+        except ValidationError as e:
+            raise serializers.ValidationError(str(e))
+        return value
 
     def create(self, validated_data):
         user = CustomUser.objects.create_user(

@@ -5,16 +5,54 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.cache import cache
 from django.contrib.auth import get_user_model
 from .utils import generate_verification_code, send_verification_email
-from .serializers import UserRegistrationSerializer, UserUpdateSerializer
+from .serializers import CustomTokenObtainPairSerializer, UserRegistrationSerializer, UserUpdateSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Count
 from rest_framework.decorators import api_view
 from user_auth.models import Status
+from rest_framework_simplejwt.views import TokenObtainPairView
+from drf_spectacular.utils import extend_schema
+
 
 User = get_user_model()
 
 
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+    @extend_schema(
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'access': {'type': 'string', 'example': 'eyJhbGci...'},
+                    'refresh': {'type': 'string', 'example': 'eyJhbGci...'},
+                    'expires_in': {'type': 'integer', 'example': 300},
+                },
+            },
+            400: {'description': 'Invalid credentials or bad request'},
+        },
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+
 class UserRegistrationView(APIView):
+    """
+    Handles user registration.
+
+    Request body:
+    - username: string (required)
+    - email: string (required)
+    - password: string (required)
+    - date_of_birth: date (optional)
+    - profile_picture: file (optional)
+
+    Response:
+    - Success: HTTP 201 Created
+    - Failure: HTTP 400 Bad Request
+    """
+
     def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
@@ -27,9 +65,7 @@ class UserRegistrationView(APIView):
             )
             send_verification_email(user.email, verification_code)
             return Response(
-                {
-                    "message": "User registered successfully. Verification code sent to email."
-                },
+                {"message": "User registered successfully. Verification code sent to email."},
                 status=status.HTTP_201_CREATED,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -144,15 +180,15 @@ def user_status(request, user_id):
         .values("status")
         .annotate(count=Count("status"))
     )
-    
+
     # Формируем сводку, где ключами будут статусы, а значениями — количество
     status_summary = {status["status"]: status["count"] for status in statuses}
-    
+
     # Статусы по умолчанию (если для них нет записей в базе данных)
     default_statuses = [
         "watching", "completed", "on_hold", "dropped", "plan_to_watch"
     ]
-    
+
     # Добавляем нулевые значения для статусов, которые могут быть не найдены
     for status_item in default_statuses:
         if status_item not in status_summary:

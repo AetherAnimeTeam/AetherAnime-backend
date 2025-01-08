@@ -6,6 +6,7 @@ from django.db.models import Count
 from .models import Anime, AnimePreview, Genre
 from .serializers import AnimeSerializer, AnimePreviewSerializer
 from rest_framework.views import APIView
+from utils.anime_meta_parser import get_details
 
 
 class ListAnimeView(APIView):
@@ -55,16 +56,18 @@ class SearchAnimeView(APIView):
 
 class AnimeDetailView(APIView):
     """
-    Получить детали аниме по ID.
+    Получить детали аниме по ID, используя данные из внешнего источника.
     """
 
     serializer_class = AnimeSerializer
 
     def get(self, request, anime_id, *args, **kwargs):
         try:
-            anime = Anime.objects.get(pk=anime_id)
-        except Anime.DoesNotExist:
-            return Response({"error": "Anime not found"}, status=404)
+            # Получаем данные о аниме с использованием функции из anime_meta_parser.py в папке utils
+            anime = get_details(anime_id)
+        except Exception as e:
+            return Response({"error": f"Anime not found: {str(e)}"}, status=404)
 
+        # Сериализация данных
         serializer = self.serializer_class(anime)
         return Response(serializer.data)
