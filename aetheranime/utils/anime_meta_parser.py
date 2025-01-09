@@ -1,4 +1,5 @@
 import asyncio
+from typing import Optional
 
 import aiohttp
 import requests
@@ -17,22 +18,25 @@ def generate_graphql_request(endpoint: str, params: dict, selected_rows: list[st
 
 
 def get_animes_by_name(
-    name: str,
+    name: Optional[str] = None,
     order: str = "popularity",
-    status: str = "latest",
+    status: Optional[str] = None,
     limit: int = 10,
     page: int = 1,
 ) -> list[AnimePreview]:
-    graphql_body = generate_graphql_request(
-        "animes",
-        {
-            "search": f'"{name}"',
+    params = {
             "limit": limit,
             "page": page,
             "order": order,
-            "status": f'"{status}"',
-        },
-        ["russian", "poster { id originalUrl }", "score", "status", "id"],
+        }
+
+    if name: params["search"] = f'"{name}"'
+    if status: params["status"] = status
+
+    graphql_body = generate_graphql_request(
+        "animes",
+        params,
+        ["russian", "poster { originalUrl }", "score", "status", "id"],
     )
 
     headers = {"User-Agent": "AetherAnime/1.0"}
@@ -42,17 +46,10 @@ def get_animes_by_name(
         json={"query": graphql_body},
         headers=headers,
     )
+
     return [
-        AnimePreview(anime_json) for anime_json in (response.json())["data"]["animes"]
+        anime_json for anime_json in (response.json())["data"]["animes"]
     ]
-    # async with aiohttp.ClientSession(headers=headers) as session:
-    #     async with session.post(
-    #         "https://shikimori.one/api/graphql", json={"query": graphql_body}
-    #     ) as response:
-    #         return [
-    #             AnimePreview(anime_json)
-    #             for anime_json in (await response.json())["data"]["animes"]
-    #         ]
 
 
 def save_anime_to_db(anime_data: dict) -> Anime:
@@ -95,11 +92,6 @@ def get_details(anime_id: int) -> Anime:
         json={"query": graphql_body},
         headers=headers,
     )
-
-    # async with aiohttp.ClientSession(headers=headers) as session:
-    #     async with session.post(
-    #         "https://shikimori.one/api/graphql", json={"query": graphql_body}
-    #     ) as response:
 
     anime_data = (response.json())["data"]["animes"][0]
     # return anime_data

@@ -8,11 +8,12 @@ class GenreSerializer(serializers.ModelSerializer):
         fields = ["id", "name"]
 
 
-class AnimePreviewSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AnimePreview
-        fields = "__all__"
-
+class AnimePreviewSerializer(serializers.Serializer):
+    russian = serializers.CharField()
+    poster = serializers.DictField()
+    score = serializers.FloatField()
+    status = serializers.CharField()
+    id = serializers.CharField()
 
 class AnimeSerializer(serializers.ModelSerializer):
     genres = GenreSerializer(many=True)

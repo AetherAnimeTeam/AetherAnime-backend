@@ -19,7 +19,7 @@ class Genre(models.Model):
 class AnimePreview(models.Model):
     anime_id = models.PositiveIntegerField(unique=True)
     name_ru = models.CharField(max_length=255)
-    poster_url = models.URLField()
+    originalUrl = models.URLField()
     score = models.FloatField()
     status = models.CharField(
         max_length=20,

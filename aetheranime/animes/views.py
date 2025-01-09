@@ -1,3 +1,5 @@
+from typing import Optional
+
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveAPIView
@@ -8,6 +10,8 @@ from .serializers import AnimeSerializer, AnimePreviewSerializer
 from rest_framework.views import APIView
 from utils.anime_meta_parser import get_details
 
+from utils.anime_meta_parser import get_animes_by_name
+
 
 class ListAnimeView(APIView):
     """
@@ -16,21 +20,11 @@ class ListAnimeView(APIView):
 
     serializer_class = AnimePreviewSerializer
 
-    def get(self, request, *args, **kwargs):
-        order = request.GET.get("order", "popularity")
-        status = request.GET.get("status", "")
-        limit = int(request.GET.get("limit", 10))
-        page = int(request.GET.get("page", 1))
+    def get(self, request, order: str="popularity",
+            status: str="latest", page: int=1, limit: int=10, name: Optional[str] = None):
 
-        previews = AnimePreview.objects.all()
-        if status:
-            previews = previews.filter(status=status)
-        if order:
-            previews = previews.order_by(order)
-
-        start = (page - 1) * limit
-        end = start + limit
-        serializer = self.serializer_class(previews[start:end], many=True)
+        animes = get_animes_by_name(order=order, status=status, page=page, limit=limit)
+        serializer = self.serializer_class(animes, many=True)
 
         return Response(serializer.data)
 
@@ -42,15 +36,10 @@ class SearchAnimeView(APIView):
 
     serializer_class = AnimePreviewSerializer
 
-    def get(self, request, *args, **kwargs):
-        name = request.GET.get("name", "")
-        if not name:
-            return Response(
-                {"error": "Parameter 'name' is required"},
-                status=400,
-            )
-        previews = AnimePreview.objects.filter(name_ru__icontains=name)
-        serializer = self.serializer_class(previews, many=True)
+    def get(self, request, name: str):
+        animes = get_animes_by_name(name=name, limit=10)
+
+        serializer = self.serializer_class(animes, many=True)
         return Response(serializer.data)
 
 
