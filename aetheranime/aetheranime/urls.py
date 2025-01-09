@@ -25,7 +25,7 @@ from drf_spectacular.views import (
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/", include("user_auth.urls")),
+    path("api/user/", include("user.urls")),
     path("api/auth/", include("social_django.urls", namespace="social")),
     path("api/animes/", include("animes.urls")),
     path("api/comments/", include("comments.urls")),
@@ -36,5 +36,4 @@ urlpatterns = [
         name="swagger-ui",
     ),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
-    path("api/", include("user_auth.urls")),
 ]

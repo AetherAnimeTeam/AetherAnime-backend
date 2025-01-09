@@ -1,15 +1,13 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.cache import cache
 from django.contrib.auth import get_user_model
 from .utils import generate_verification_code, send_verification_email
 from .serializers import UserTokenObtainPairSerializer, UserRegistrationSerializer, UserUpdateSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Count
-from rest_framework.decorators import api_view
-from user_auth.models import Status
+from .models import Status
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
 
@@ -33,6 +31,9 @@ class UserTokenObtainPairView(TokenObtainPairView):
         },
     )
     def post(self, request, *args, **kwargs):
+        user = User.objects.get(username=request.data['username'])
+        if not user.is_verified:
+            return Response(status=status.HTTP_403_FORBIDDEN, data={'detail': 'Not verified'})
         return super().post(request, *args, **kwargs)
 
 
@@ -70,7 +71,7 @@ class UserRegistrationView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             verification_code = generate_verification_code()
-            print(verification_code, f"verification_code_{user.email.strip()}")
+
             cache.set(
                 f"verification_code_{user.email.strip()}",
                 verification_code,
@@ -83,10 +84,31 @@ class UserRegistrationView(APIView):
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class SendVerificationCode(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+
+        if not email:
+            return Response({"error": "Email are required."}, status=status.HTTP_400_BAD_REQUEST, )
+
+        email = email.strip()
+        if not User.objects.filter(email=email).exists():
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        verification_code = generate_verification_code()
+
+        send_verification_email(email, verification_code)
+        cache.set(
+            f"verification_code_{email}",
+            verification_code,
+            timeout=3600,
+        )
+
+        return Response({"message": "Verification code sent to email."}, status=status.HTTP_200_OK)
 
 class VerifyEmailView(APIView):
     def post(self, request):
-        email = request.data.get("email").strip()
+        email = request.data.get("email")
         code = request.data.get("code")
 
         if not email or not code:
@@ -94,6 +116,8 @@ class VerifyEmailView(APIView):
                 {"error": "Email and code are required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        email = email.strip()
 
         cached_code = cache.get(f"verification_code_{email}")
         if cached_code == code:
@@ -152,7 +176,6 @@ class UserProfileView(APIView):
             )
             status_data = {status["status"]: status["count"] for status in statuses}
 
-            # Пример с аватаром
             user_data = {
                 "username": user.username,
                 "email": user.email,

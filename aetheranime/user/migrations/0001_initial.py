@@ -164,7 +164,7 @@ class Migration(migrations.Migration):
                         null=True,
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="replies",
-                        to="user_auth.comment",
+                        to="user.comment",
                     ),
                 ),
                 (

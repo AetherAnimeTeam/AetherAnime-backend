@@ -38,7 +38,7 @@ else:
     ALLOWED_HOSTS = ["localhost", "127.0.0.1", "[::1]"]
 
 
-AUTH_USER_MODEL = "user_auth.CustomUser"
+AUTH_USER_MODEL = "user.CustomUser"
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = "smtp.yandex.ru"
@@ -60,19 +60,20 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework.authtoken",
-    "user_auth",
+    "user",
     "social_django",
     "comments",
     "corsheaders",
     "animes",
     "drf_spectacular",
+    "django_extensions"
 ]
 
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=6),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=180),
-    "TOKEN_OBTAIN_SERIALIZER": "user_auth.serializers.UserTokenObtainPairSerializer",
+    "TOKEN_OBTAIN_SERIALIZER": "user.serializers.UserTokenObtainPairSerializer",
 }
 
 
