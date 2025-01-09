@@ -40,12 +40,14 @@ else:
 
 AUTH_USER_MODEL = "user_auth.CustomUser"
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.example.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "aetheranime@gmail.com"
-EMAIL_HOST_PASSWORD = "your_password"
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = "smtp.yandex.ru"
+EMAIL_HOST_USER = "aetheranime@yandex.ru"
+EMAIL_HOST_PASSWORD = "kcenkmgvutwuqytr"
+EMAIL_PORT = 465
+
+EMAIL_USE_SSL = True
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Application definition
 
@@ -68,8 +70,9 @@ INSTALLED_APPS = [
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=6),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=180),
+    "TOKEN_OBTAIN_SERIALIZER": "user_auth.serializers.UserTokenObtainPairSerializer",
 }
 
 

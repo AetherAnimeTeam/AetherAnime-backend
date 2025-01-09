@@ -7,10 +7,11 @@ from rest_framework_simplejwt.settings import api_settings
 from datetime import timedelta
 
 
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+class UserTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
-        data['expires_in'] = int(api_settings.ACCESS_TOKEN_LIFETIME.total_seconds())
+        data["expires_in"] = api_settings.ACCESS_TOKEN_LIFETIME.total_seconds()
+        data["id"] = attrs["id"]
         return data
 
 

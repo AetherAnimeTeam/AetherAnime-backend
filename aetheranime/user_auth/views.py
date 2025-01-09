@@ -5,20 +5,19 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.cache import cache
 from django.contrib.auth import get_user_model
 from .utils import generate_verification_code, send_verification_email
-from .serializers import CustomTokenObtainPairSerializer, UserRegistrationSerializer, UserUpdateSerializer
+from .serializers import UserTokenObtainPairSerializer, UserRegistrationSerializer, UserUpdateSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Count
 from rest_framework.decorators import api_view
 from user_auth.models import Status
-from rest_framework_simplejwt.views import TokenObtainPairView
-from drf_spectacular.utils import extend_schema
-
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
 
 User = get_user_model()
 
 
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
+class UserTokenObtainPairView(TokenObtainPairView):
+    serializer_class = UserTokenObtainPairSerializer
 
     @extend_schema(
         responses={
@@ -27,7 +26,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 'properties': {
                     'access': {'type': 'string', 'example': 'eyJhbGci...'},
                     'refresh': {'type': 'string', 'example': 'eyJhbGci...'},
-                    'expires_in': {'type': 'integer', 'example': 300},
+                    'expires_in': {'type': 'integer', 'example': 6*60*60},
                 },
             },
             400: {'description': 'Invalid credentials or bad request'},
@@ -41,29 +40,43 @@ class UserRegistrationView(APIView):
     """
     Handles user registration.
 
-    Request body:
-    - username: string (required)
-    - email: string (required)
-    - password: string (required)
-    - date_of_birth: date (optional)
-    - profile_picture: file (optional)
-
     Response:
     - Success: HTTP 201 Created
     - Failure: HTTP 400 Bad Request
     """
 
+    @extend_schema(
+        request=UserRegistrationSerializer,
+        examples=[
+            OpenApiExample(
+                "Credentials",
+                value={
+                    "username": "",
+                    "email": "",
+                    "password": "",
+                    "date_of_birth": "",
+                    "profile_picture": "",
+                },
+                request_only=True
+            )
+        ],
+        responses={
+            201: OpenApiResponse(description="User registered successfully. Verification code sent to email."),
+            400: OpenApiResponse(description="Bad Request"),
+        },
+    )
     def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
             verification_code = generate_verification_code()
+            print(verification_code, f"verification_code_{user.email.strip()}")
             cache.set(
-                f"verification_code_{user.email}",
+                f"verification_code_{user.email.strip()}",
                 verification_code,
                 timeout=3600,
             )
-            send_verification_email(user.email, verification_code)
+            send_verification_email(user.email.strip(), verification_code)
             return Response(
                 {"message": "User registered successfully. Verification code sent to email."},
                 status=status.HTTP_201_CREATED,
@@ -73,7 +86,7 @@ class UserRegistrationView(APIView):
 
 class VerifyEmailView(APIView):
     def post(self, request):
-        email = request.data.get("email")
+        email = request.data.get("email").strip()
         code = request.data.get("code")
 
         if not email or not code:
@@ -105,31 +118,32 @@ class VerifyEmailView(APIView):
         )
 
 
-class TokenRefreshView(APIView):
-    def post(self, request):
-        refresh_token = request.data.get("refresh")
-        if not refresh_token:
-            return Response(
-                {"error": "Refresh token is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+class UserTokenRefreshView(TokenRefreshView):
+    serializer_class = UserTokenObtainPairSerializer
 
-        try:
-            refresh = RefreshToken(refresh_token)
-            new_token = str(refresh.access_token)
-            return Response({"access": new_token}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response(
-                {"error": str(e)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+    @extend_schema(
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'access': {'type': 'string', 'example': 'eyJhbGci...'},
+                    'refresh': {'type': 'string', 'example': 'eyJhbGci...'},
+                    'expires_in': {'type': 'integer', 'example': 6*60*60},
+                },
+            },
+            400: {'description': 'Invalid credentials or bad request'},
+        },
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
 
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, user_id):
+    def get(self, request):
         try:
+            user_id = request.user.id
             user = User.objects.get(id=user_id)
             statuses = (
                 Status.objects.filter(user_id=user_id)
@@ -154,8 +168,9 @@ class UserProfileView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-    def put(self, request, user_id):
+    def put(self, request):
         try:
+            user_id = request.user.id
             user = User.objects.get(id=user_id)
             serializer = UserUpdateSerializer(user, data=request.data)
             if serializer.is_valid():
@@ -170,28 +185,3 @@ class UserProfileView(APIView):
                 {"error": "User not found."},
                 status=status.HTTP_404_NOT_FOUND,
             )
-
-
-@api_view(["GET"])
-def user_status(request, user_id):
-    # Получаем все статусы для указанного пользователя
-    statuses = (
-        Status.objects.filter(user_id=user_id)
-        .values("status")
-        .annotate(count=Count("status"))
-    )
-
-    # Формируем сводку, где ключами будут статусы, а значениями — количество
-    status_summary = {status["status"]: status["count"] for status in statuses}
-
-    # Статусы по умолчанию (если для них нет записей в базе данных)
-    default_statuses = [
-        "watching", "completed", "on_hold", "dropped", "plan_to_watch"
-    ]
-
-    # Добавляем нулевые значения для статусов, которые могут быть не найдены
-    for status_item in default_statuses:
-        if status_item not in status_summary:
-            status_summary[status_item] = 0
-
-    return Response(status_summary)

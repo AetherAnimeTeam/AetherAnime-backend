@@ -1,5 +1,7 @@
 import random
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage
+
+from aetheranime import settings
 
 
 def generate_verification_code():
@@ -7,7 +9,10 @@ def generate_verification_code():
 
 
 def send_verification_email(email, code):
-    subject = "Verify your email"
-    message = f"Your verification code is: {code}"
-    from_email = "aetheranime@gmail.com"
-    send_mail(subject, message, from_email, [email])
+    email = EmailMessage(
+        'Verify your email',
+        f"Your verification code is: {code}",
+        settings.EMAIL_HOST_USER,
+        [email]
+    )
+    email.send()
