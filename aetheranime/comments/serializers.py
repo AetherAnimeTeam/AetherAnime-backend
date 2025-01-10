@@ -4,6 +4,7 @@ from .models import Comment, WatchedHistory, AnimeStatus, Review
 
 class CommentSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField()
+    replies_n = serializers.SerializerMethodField()
     reply_to = serializers.PrimaryKeyRelatedField(queryset=Comment.objects.all(), required=False, allow_null=True)
 
     class Meta:
@@ -15,14 +16,19 @@ class CommentSerializer(serializers.ModelSerializer):
             "user",
             "content",
             "created_at",
+            "replies_n",
             "replies",
         ]
     
     def get_replies(self, obj):
-        # Получение всех ответов для данного комментария
         if obj.replies.exists():
-            return CommentSerializer(obj.replies.all(), many=True).data
+            return CommentSerializer(obj.replies.all()[:3], many=True).data
         return []
+
+    def get_replies_n(self, obj):
+        if obj.replies.exists():
+            return obj.replies.count()
+        return 0
 
     def create(self, validated_data):
         """
@@ -31,7 +37,6 @@ class CommentSerializer(serializers.ModelSerializer):
         """
         reply_to = validated_data.get('reply_to', None)
         if reply_to:
-            # Это ответ на другой комментарий
             validated_data['reply_to'] = reply_to
         
         # Создание нового комментария

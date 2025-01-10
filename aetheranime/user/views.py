@@ -141,27 +141,6 @@ class VerifyEmailView(APIView):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-
-class UserTokenRefreshView(TokenRefreshView):
-    serializer_class = UserTokenObtainPairSerializer
-
-    @extend_schema(
-        responses={
-            200: {
-                'type': 'object',
-                'properties': {
-                    'access': {'type': 'string', 'example': 'eyJhbGci...'},
-                    'refresh': {'type': 'string', 'example': 'eyJhbGci...'},
-                    'expires_in': {'type': 'integer', 'example': 6*60*60},
-                },
-            },
-            400: {'description': 'Invalid credentials or bad request'},
-        },
-    )
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
-
-
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 

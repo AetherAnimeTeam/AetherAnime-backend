@@ -1,3 +1,6 @@
+from django.db.models import Count
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -7,17 +10,14 @@ from .models import Comment
 from .serializers import CommentSerializer
 
 
-class GetCommentsAPIView(APIView):
+class CommentAPIView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     def get(self, request, anime_id, comment_id=None):
-        if comment_id:
-            comments = Comment.objects.filter(
-                reply_to_id=comment_id,
-            )
-        else:
-            comments = Comment.objects.filter(
-                anime_id=anime_id,
-                reply_to__isnull=True,
-            )
+        comments = Comment.objects.filter(
+            anime_id=anime_id,
+            reply_to=comment_id,
+        )
 
         paginator = PageNumberPagination()
         paginator.page_size = request.query_params.get("page_size", 20)
@@ -26,50 +26,25 @@ class GetCommentsAPIView(APIView):
         serializer = CommentSerializer(paginated_comments, many=True)
         return paginator.get_paginated_response(serializer.data)
 
-
-class AddCommentAPIView(APIView):
-    def post(self, request, anime_id):
+    def post(self, request, anime_id, comment_id=None):
         text = request.data.get("text", "")
         if not text:
             return Response(
                 {"error": "text is required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        parent_comment = get_object_or_404(Comment, pk=comment_id) if comment_id else None
 
-        # Создаем новый комментарий
-        comment = Comment.objects.create(
-            anime_id=anime_id, user=request.user, content=text, reply_to=None
-        )
+        comment = Comment.objects.create(anime_id=anime_id, user=request.user, content=text, reply_to=parent_comment)
 
         serializer = CommentSerializer(comment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-
-class AddReplyAPIView(APIView):
-    def post(self, request, anime_id, comment_id):
-        text = request.data.get("text", "")
-        if not text:
-            return Response(
-                {"error": "text is required"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        parent_comment = get_object_or_404(Comment, pk=comment_id)
-
-        reply = Comment.objects.create(
-            anime_id=anime_id,
-            user=request.user,
-            content=text,
-            reply_to=parent_comment,
-        )
-
-        serializer = CommentSerializer(reply)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
-class DeleteCommentAPIView(APIView):
-    def delete(self, request, comment_id):
+    def delete(self, request, anime_id, comment_id):
         comment = get_object_or_404(Comment, pk=comment_id)
+
+        if request.user.id != comment.user.id:
+            return Response(status=status.HTTP_403_FORBIDDEN)
 
         if comment.replies.exists():
             comment.content = None
@@ -80,4 +55,5 @@ class DeleteCommentAPIView(APIView):
             )
 
         comment.delete()
+
         return Response(status=status.HTTP_204_NO_CONTENT)
