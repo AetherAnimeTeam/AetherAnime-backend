@@ -66,7 +66,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "animes",
     "drf_spectacular",
-    "django_extensions"
+    "django_extensions",
 ]
 
 
@@ -150,7 +150,7 @@ DATABASES = {
         "NAME": "aetheranime",
         "USER": "postgres",
         "PASSWORD": "root",
-        "HOST": "127.0.0.1",
+        "HOST": "db",
         "PORT": "5432",
         "OPTIONS": {
             "client_encoding": "UTF8",

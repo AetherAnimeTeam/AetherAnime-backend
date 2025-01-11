@@ -87,3 +87,55 @@ backupdb:
 restoredb:
 	@echo "Restoring the database..."
 	@python $(DJANGO_MANAGE) loaddata db_backup.json
+
+
+#Docker
+# Переменные
+DOCKER_COMPOSE = docker-compose
+SERVICE = web
+
+# Запуск контейнеров
+up:
+	$(DOCKER_COMPOSE) up --build
+
+# Остановка контейнеров
+down:
+	$(DOCKER_COMPOSE) down
+
+# Перезапуск контейнеров
+restart:
+	$(DOCKER_COMPOSE) restart
+
+# Остановка и удаление контейнеров и volumes
+clean:
+	$(DOCKER_COMPOSE) down -v
+
+# Применение миграций
+migrate:
+	$(DOCKER_COMPOSE) exec $(SERVICE) python manage.py migrate
+
+# Создание суперпользователя
+superuser:
+	$(DOCKER_COMPOSE) exec $(SERVICE) python manage.py createsuperuser
+
+# Запуск тестов
+test:
+	$(DOCKER_COMPOSE) exec $(SERVICE) python manage.py test
+
+# Просмотр логов
+logs:
+	$(DOCKER_COMPOSE) logs -f $(SERVICE)
+
+# Запуск bash в контейнере
+bash:
+	$(DOCKER_COMPOSE) exec $(SERVICE) bash
+
+# Проверка состояния контейнеров
+status:
+	$(DOCKER_COMPOSE) ps
+
+clean-cache:
+	docker system prune -f
+
+up-detached:
+	$(DOCKER_COMPOSE) up --build -d
