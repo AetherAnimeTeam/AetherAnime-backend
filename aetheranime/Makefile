@@ -94,6 +94,14 @@ restoredb:
 DOCKER_COMPOSE = docker-compose
 SERVICE = web
 
+deploy:
+	$(DOCKER_COMPOSE) -f docker-compose.yml up --build
+
+configure-docker:
+	$(DOCKER_COMPOSE) -f docker-compose.yml exec api python manage.py migrate --noinput
+	$(DOCKER_COMPOSE) -f docker-compose.yml exec api python manage.py collectstatic --noinput --clear
+
+
 up:
 	$(DOCKER_COMPOSE) up --build
 # Остановка контейнеров

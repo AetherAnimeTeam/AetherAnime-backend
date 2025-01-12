@@ -146,10 +146,10 @@ WSGI_APPLICATION = "aetheranime.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "aetheranime",
-        "USER": "postgres",
-        "PASSWORD": "root",
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": "aetheranime1",
+        "USER": "aetheranime",
+        "PASSWORD": "postgres",
         "HOST": "db",
         "PORT": "5432",
         "OPTIONS": {
@@ -192,7 +192,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR + "staticfiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
