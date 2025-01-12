@@ -5,6 +5,10 @@ import string
 
 
 class CustomUser(AbstractUser):
+    username = models.CharField(max_length=30, unique=False)
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
+
     date_of_birth = models.DateField(
         null=True,
         blank=True,
@@ -14,7 +18,7 @@ class CustomUser(AbstractUser):
         null=True,
         blank=True,
     )
-    email = models.TextField(
+    email = models.EmailField(
         unique=True,
     )
     is_verified = models.BooleanField(

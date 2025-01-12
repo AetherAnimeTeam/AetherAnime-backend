@@ -31,7 +31,7 @@ def get_animes_by_name(
         }
 
     if name: params["search"] = f'"{name}"'
-    if status: params["status"] = status
+    if status: params["status"] = f'"{status}"'
 
     graphql_body = generate_graphql_request(
         "animes",
