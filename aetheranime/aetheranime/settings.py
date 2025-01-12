@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-load_dotenv(os.path.join(BASE_DIR, ".env.dev"))
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 
 # Quick-start development settings - unsuitable for production
@@ -66,7 +66,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "animes",
     "drf_spectacular",
-    "django_extensions"
+    "django_extensions",
 ]
 
 
@@ -150,7 +150,7 @@ DATABASES = {
         "NAME": "aetheranime",
         "USER": "postgres",
         "PASSWORD": "root",
-        "HOST": "127.0.0.1",
+        "HOST": "db",
         "PORT": "5432",
         "OPTIONS": {
             "client_encoding": "UTF8",

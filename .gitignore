@@ -7,12 +7,13 @@ __pycache__/
 *.so
 
 # Distribution / packaging
-__pycache__/
 .Python
 env/
 .vscode/
 .idea/
 .env
+venv
+.venv
 build/
 develop-eggs/
 dist/
@@ -83,11 +84,7 @@ celerybeat-schedule
 # SageMath parsed files
 *.sage.py
 
-# dotenv
-.env
-
 # virtualenv
-.venv
 venv/
 ENV/
 .vscode
