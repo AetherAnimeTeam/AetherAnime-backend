@@ -15,38 +15,22 @@ class AnimePreviewSerializer(serializers.Serializer):
     status = serializers.CharField()
     id = serializers.CharField()
 
-class AnimeSerializer(serializers.ModelSerializer):
-    genres = GenreSerializer(many=True)
-
-    class Meta:
-        model = Anime
-        fields = [
-            "name_ru",
-            "name_original",
-            "description",
-            "poster_url",
-            "genres",
-            "score",
-            "score_count",
-            "age_rating",
-            "studios",
-            "duration",
-            "episodes",
-            "episodes_aired",
-            "fandubbers",
-            "fansubbers",
-            "release_date",
-            "status",
-            "related_material",
-            "trailer_url",
-        ]
-
-    def create(self, validated_data):
-        genres_data = validated_data.pop("genres")
-        anime = Anime.objects.create(**validated_data)
-
-        for genre_data in genres_data:
-            genre, _ = Genre.objects.get_or_create(**genre_data)
-            anime.genres.add(genre)
-
-        return anime
+class AnimeSerializer(serializers.Serializer):
+    name_ru = serializers.CharField()
+    name_original = serializers.CharField()
+    description = serializers.CharField()
+    poster_url = serializers.CharField()
+    genres = serializers.ListField()
+    score = serializers.IntegerField()
+    score_count = serializers.IntegerField()
+    age_rating = serializers.CharField()
+    studios = serializers.ListField()
+    duration = serializers.IntegerField()
+    episodes = serializers.IntegerField()
+    episodes_aired = serializers.IntegerField()
+    fandubbers = serializers.ListField()
+    fansubbers = serializers.ListField()
+    release_date = serializers.CharField()
+    status = serializers.CharField()
+    related_material = serializers.ListField()
+    trailer_url = serializers.CharField()

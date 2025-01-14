@@ -28,6 +28,6 @@ volumes:
   postgres_data:
   static_volume:
 
-networks:
-  default:
-    driver: bridge
+#networks:
+#  default:
+#    driver: bridge

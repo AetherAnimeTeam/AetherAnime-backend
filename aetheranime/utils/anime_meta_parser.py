@@ -107,7 +107,7 @@ def get_details(anime_id: int) -> Anime:
         "duration": anime_data["duration"],
         "episodes": anime_data["episodes"],
         "episodes_aired": anime_data["episodesAired"],
-        "studios": ", ".join([studio["name"] for studio in anime_data["studios"]]),
+        "studios": [studio["name"] for studio in anime_data["studios"]],
         "fandubbers": anime_data["fandubbers"],
         "fansubbers": anime_data["fansubbers"],
         "release_date": anime_data["releasedOn"]["date"],
@@ -118,4 +118,4 @@ def get_details(anime_id: int) -> Anime:
     }
 
     # return anime_data
-    return save_anime_to_db(adapted_anime_data)
+    return adapted_anime_data
