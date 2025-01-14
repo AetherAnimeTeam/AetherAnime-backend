@@ -36,7 +36,7 @@ def get_animes_by_name(
     graphql_body = generate_graphql_request(
         "animes",
         params,
-        ["russian", "poster { originalUrl }", "score", "status", "id"],
+        ["russian", "poster { previewUrl }", "score", "status", "id"],
     )
 
     headers = {"User-Agent": "AetherAnime/1.0"}
@@ -50,14 +50,6 @@ def get_animes_by_name(
     return [
         anime_json for anime_json in (response.json())["data"]["animes"]
     ]
-
-
-def save_anime_to_db(anime_data: dict) -> Anime:
-    serializer = AnimeSerializer(data=anime_data)
-    if serializer.is_valid():
-        return serializer.save()
-    else:
-        raise ValueError(f"Invalid data: {serializer.errors}")
 
 
 def get_details(anime_id: int) -> Anime:
