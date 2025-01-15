@@ -1,117 +1,154 @@
-from django.test import TestCase, Client
 from django.urls import reverse
-from rest_framework import status
-from animes.models import Anime
-from user_auth.models import CustomUser, Status
 from rest_framework.test import APITestCase
-from rest_framework.authtoken.models import Token
+from rest_framework import status
+from django.contrib.auth import get_user_model
+from .models import Status
+from django.core.cache import cache
+
+User = get_user_model()
 
 
-class UserRegistrationViewTests(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.register_url = reverse("register")
-        self.valid_data = {
-            "username": "testuser",
-            "email": "testuser@example.com",
-            "password": "password123",
-        }
-
+class UserRegistrationViewTests(APITestCase):
     def test_user_registration_success(self):
-        response = self.client.post(self.register_url, data=self.valid_data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertIn("message", response.data)
-
-    def test_user_registration_missing_fields(self):
-        invalid_data = {
+        url = reverse("register")
+        data = {
             "username": "testuser",
-            "email": "testuser@example.com",
-            # Пароль отсутствует
+            "email": "test@example.com",
+            "password": "testpassword123",
+            "date_of_birth": "2000-01-01",
         }
-        response = self.client.post(self.register_url, data=invalid_data)
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(User.objects.filter(email="test@example.com").exists())
+
+    def test_user_registration_invalid_data(self):
+        url = reverse("register")
+        data = {
+            "username": "",
+            "email": "invalid-email",
+            "password": "short",
+        }
+        response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("password", response.data)
 
 
-class VerifyEmailViewTests(TestCase):
+class UserTokenObtainPairViewTests(APITestCase):
     def setUp(self):
-        self.client = Client()
-        self.verify_url = reverse("verify_email")
-        self.user = CustomUser.objects.create_user(
+        self.user = User.objects.create_user(
             username="testuser",
-            email="testuser@example.com",
-            password="password123",
-            is_verified=False,
+            email="test@example.com",
+            password="testpassword123",
+            is_verified=True,
         )
 
-    def test_email_verification_success(self):
-        from django.core.cache import cache
-
-        cache.set(
-            f"verification_code_{self.user.email}",
-            "123456",
-            timeout=3600,
-        )
-
-        response = self.client.post(
-            self.verify_url,
-            data={
-                "email": self.user.email,
-                "code": "123456",
-            },
-        )
+    def test_token_obtain_success(self):
+        url = reverse("token_obtain_pair")
+        data = {
+            "email": "test@example.com",
+            "password": "testpassword123",
+        }
+        response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["message"], "Email verified successfully.")
-        self.user.refresh_from_db()
-        self.assertTrue(self.user.is_verified)
+        self.assertIn("access", response.data)
+        self.assertIn("refresh", response.data)
 
-    def test_email_verification_invalid_code(self):
-        response = self.client.post(
-            self.verify_url,
-            data={
-                "email": self.user.email,
-                "code": "wrong_code",
-            },
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("error", response.data)
-
-
-class ProtectedViewTests(APITestCase):
-    def setUp(self):
-        self.user = CustomUser.objects.create_user(
-            username="testuser",
-            email="testuser@example.com",
-            password="password123",
-        )
-        self.token = Token.objects.create(user=self.user)
-        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
-        self.protected_url = reverse("protected-view")
-
-    def test_protected_view_with_authentication(self):
-        response = self.client.get(self.protected_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["message"], "This is a protected resource")
-
-    def test_protected_view_without_authentication(self):
-        self.client.credentials()
-        response = self.client.get(self.protected_url)
+    def test_token_obtain_invalid_credentials(self):
+        url = reverse("token_obtain_pair")
+        data = {
+            "email": "test@example.com",
+            "password": "wrongpassword",
+        }
+        response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class UserStatusTests(APITestCase):
+class VerifyEmailViewTests(APITestCase):
     def setUp(self):
-        self.user = CustomUser.objects.create_user(
+        self.user = User.objects.create_user(
             username="testuser",
-            email="user@example.com",
-            password="password123",
+            email="test@example.com",
+            password="testpassword123",
+            is_verified=False,
+        )
+        self.verification_code = "123456"
+        cache.set(f"verification_code_test@example.com", self.verification_code, timeout=3600)
+
+    def test_verify_email_success(self):
+        url = reverse("verify_email")
+        data = {
+            "email": "test@example.com",
+            "code": self.verification_code,
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_verified)
+
+    def test_verify_email_invalid_code(self):
+        url = reverse("verify_email")
+        data = {
+            "email": "test@example.com",
+            "code": "wrongcode",
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class UserProfileViewTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="testuser",
+            email="test@example.com",
+            password="testpassword123",
+            is_verified=True,
+        )
+        self.client.force_authenticate(user=self.user)
+        Status.objects.create(user=self.user, anime_id=1, status="watching")
+        Status.objects.create(user=self.user, anime_id=2, status="completed")
+
+    def test_get_user_profile_success(self):
+        url = reverse("user_profile")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["username"], "testuser")
+        self.assertEqual(response.data["status_summary"]["watching"], 1)
+        self.assertEqual(response.data["status_summary"]["completed"], 1)
+
+    def test_update_user_profile_success(self):
+        url = reverse("user_profile")
+        data = {
+            "username": "updateduser",
+            "email": "updated@example.com",
+        }
+        response = self.client.put(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.username, "updateduser")
+        self.assertEqual(self.user.email, "updated@example.com")
+
+
+class SendVerificationCodeTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="testuser",
+            email="test@example.com",
+            password="testpassword123",
+            is_verified=False,
         )
 
-        self.anime = Anime.objects.create(
-            title="Test Anime", description="Test Description"
-        )
+    def test_send_verification_code_success(self):
+        url = reverse("send_code")
+        data = {
+            "email": "test@example.com",
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNotNone(cache.get(f"verification_code_test@example.com"))
 
-        Status.objects.create(user=self.user, status="active", anime_id=self.anime.id)
-        Status.objects.create(user=self.user, status="inactive", anime_id=self.anime.id)
-
-        self.status_url = reverse("user_status", kwargs={"user_id": self.user.id})
+    def test_send_verification_code_invalid_email(self):
+        url = reverse("send_code")
+        data = {
+            "email": "nonexistent@example.com",
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

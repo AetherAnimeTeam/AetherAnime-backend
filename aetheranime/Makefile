@@ -94,43 +94,51 @@ restoredb:
 DOCKER_COMPOSE = docker-compose
 SERVICE = web
 
-# Запуск контейнеров
+deploy:
+	$(DOCKER_COMPOSE) -f docker-compose.yml up --build
+
+configure-docker:
+	$(DOCKER_COMPOSE) -f docker-compose.yml exec api python manage.py migrate --noinput
+	$(DOCKER_COMPOSE) -f docker-compose.yml exec api python manage.py collectstatic --noinput --clear
+
+
 up:
 	$(DOCKER_COMPOSE) up --build
-
 # Остановка контейнеров
+
 down:
 	$(DOCKER_COMPOSE) down
-
 # Перезапуск контейнеров
+
 restart:
 	$(DOCKER_COMPOSE) restart
-
 # Остановка и удаление контейнеров и volumes
+
 clean:
 	$(DOCKER_COMPOSE) down -v
-
 # Применение миграций
+
+
 migrate:
 	$(DOCKER_COMPOSE) exec $(SERVICE) python manage.py migrate
-
 # Создание суперпользователя
+
 superuser:
 	$(DOCKER_COMPOSE) exec $(SERVICE) python manage.py createsuperuser
-
 # Запуск тестов
+
 test:
 	$(DOCKER_COMPOSE) exec $(SERVICE) python manage.py test
-
 # Просмотр логов
+
 logs:
 	$(DOCKER_COMPOSE) logs -f $(SERVICE)
-
 # Запуск bash в контейнере
+
 bash:
 	$(DOCKER_COMPOSE) exec $(SERVICE) bash
-
 # Проверка состояния контейнеров
+
 status:
 	$(DOCKER_COMPOSE) ps
 

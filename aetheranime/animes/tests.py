@@ -1,64 +1,126 @@
+from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
-from django.urls import reverse
-from .models import Anime, Genre, AnimePreview
-from user_auth.models import CustomUser, Status
-from .serializers import AnimePreviewSerializer  # импортируем сериализатор
+from unittest.mock import patch
+from .serializers import AnimePreviewSerializer
 
 
-class AnimeAppTests(APITestCase):
-    def setUp(self):
-        self.user_1 = CustomUser.objects.create_user(
-            username="testuser1", password="password", email="testuser1@example.com"
-        )
-        self.user_2 = CustomUser.objects.create_user(
-            username="testuser2", password="password", email="testuser2@example.com"
-        )
+class ListAnimeViewTests(APITestCase):
+    @patch("animes.views.get_animes_by_name")
+    def test_list_anime_by_popularity(self, mock_get_animes_by_name):
+        # Мокируем данные, возвращаемые функцией get_animes_by_name
+        mock_get_animes_by_name.return_value = [
+            {
+                "russian": "Naruto",
+                "poster": {"url": "http://example.com/poster.jpg"},
+                "score": 8.5,
+                "status": "released",
+                "id": "1",
+            },
+            {
+                "russian": "One Piece",
+                "poster": {"url": "http://example.com/poster2.jpg"},
+                "score": 7.5,
+                "status": "ongoing",
+                "id": "2",
+            },
+        ]
 
-        self.genre = Genre.objects.create(id=1, name="Action")
-        self.anime = Anime.objects.create(
-            name_ru="Test Anime",
-            name_original="Test Original",
-            description="Test Description",
-            poster_url="http://example.com/poster.jpg",
-            score=8.5,
-            score_count=100,
-            age_rating="PG-13",
-            studios="Test Studio",
-            duration=24,
-            episodes=12,
-            episodes_aired=12,
-            release_date="2023-01-01",
-            aired_date="2023-12-31",
-            status="released",
-        )
-        self.anime.genres.add(self.genre)
-
-        self.anime_preview = AnimePreview.objects.create(
-            anime_id=self.anime.id,
-            name_ru="Test Anime Preview",
-            poster_url="http://example.com/preview.jpg",
-            score=7.8,
-            status="released",
-        )
-
-        Status.objects.create(user=self.user_1, anime_id=self.anime.id, status="active")
-        Status.objects.create(
-            user=self.user_2, anime_id=self.anime.id, status="inactive"
-        )
-
-    # def test_popular_anime(self):
-    #     url = reverse("search_anime") + "?status=latest"
-    #     response = self.client.get(url)
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    # def test_search_anime(self):
-    #     url = reverse("search_anime") + "?name=Test"
-    #     response = self.client.get(url)
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_anime_status_summary(self):
-        url = reverse("anime_status_summary", kwargs={"anime_id": self.anime.id})
+        url = reverse("list_anime", kwargs={"order": "popularity", "status": "latest", "page": 1, "limit": 10})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, {"active": 1, "inactive": 1})
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data[0]["russian"], "Naruto")
+        self.assertEqual(response.data[1]["russian"], "One Piece")
+
+    @patch("animes.views.get_animes_by_name")
+    def test_list_anime_by_status(self, mock_get_animes_by_name):
+        # Мокируем данные, возвращаемые функцией get_animes_by_name
+        mock_get_animes_by_name.return_value = [
+            {
+                "russian": "Naruto",
+                "poster": {"url": "http://example.com/poster.jpg"},
+                "score": 8.5,
+                "status": "released",
+                "id": "1",
+            }
+        ]
+
+        url = reverse("list_anime", kwargs={"order": "popularity", "status": "released", "page": 1, "limit": 10})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["russian"], "Naruto")
+
+
+class SearchAnimeViewTests(APITestCase):
+    @patch("animes.views.get_animes_by_name")
+    def test_search_anime_by_name(self, mock_get_animes_by_name):
+        # Мокируем данные, возвращаемые функцией get_animes_by_name
+        mock_get_animes_by_name.return_value = [
+            {
+                "russian": "Naruto",
+                "poster": {"url": "http://example.com/poster.jpg"},
+                "score": 8.5,
+                "status": "released",
+                "id": "1",
+            }
+        ]
+
+        url = reverse("search_anime", kwargs={"name": "Naruto"})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["russian"], "Naruto")
+
+    @patch("animes.views.get_animes_by_name")
+    def test_search_anime_no_results(self, mock_get_animes_by_name):
+        # Мокируем пустой результат
+        mock_get_animes_by_name.return_value = []
+
+        url = reverse("search_anime", kwargs={"name": "Bleach"})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+
+
+class AnimeDetailViewTests(APITestCase):
+    @patch("animes.views.get_details")
+    def test_get_anime_detail(self, mock_get_details):
+        # Мокируем данные, возвращаемые функцией get_details
+        mock_get_details.return_value = {
+            "name_ru": "Naruto",
+            "name_original": "Naruto",
+            "description": "A story about a ninja.",
+            "poster_url": "http://example.com/poster.jpg",
+            "genres": ["Action", "Adventure"],
+            "score": 8.5,
+            "score_count": 1000,
+            "age_rating": "PG-13",
+            "studios": ["Studio Pierrot"],
+            "duration": 24,
+            "episodes": 220,
+            "episodes_aired": 220,
+            "fandubbers": ["Fandubber 1"],
+            "fansubbers": ["Fansubber 1"],
+            "release_date": "2002-10-03",
+            "status": "released",
+            "related_material": [{"type": "manga", "id": 1}],
+            "trailer_url": "http://example.com/trailer.mp4",
+        }
+
+        url = reverse("get_anime_detail", kwargs={"anime_id": 1})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["name_ru"], "Naruto")
+        self.assertEqual(response.data["score"], 8.5)
+
+    @patch("animes.views.get_details")
+    def test_get_anime_detail_not_found(self, mock_get_details):
+        # Мокируем исключение, если аниме не найдено
+        mock_get_details.side_effect = Exception("Anime not found")
+
+        url = reverse("get_anime_detail", kwargs={"anime_id": 999})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data["error"], "Anime not found: Anime not found")

@@ -1,26 +1,33 @@
 services:
-  db:
-    image: postgres:13
-    environment:
-      POSTGRES_DB: aetheranime
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: root
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-
-  web:
+  api:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: bash -c "python manage.py migrate && gunicorn aetheranime.wsgi:application --bind  0.0.0.0:8000"
+    restart: always
     volumes:
-      - .:/usr/src/aetheranime
-    ports:
-      - "8000:8000"
+      - static_volume:/aetheranime_backend/staticfiles
+    expose:
+      - 8000
     env_file:
-      - ./.env.dev
+      - .env
     depends_on:
       - db
 
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: aetheranime1
+      POSTGRES_USER: aetheranime
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql15/data/
+
+
 volumes:
   postgres_data:
+  static_volume:
+
+#networks:
+#  default:
+#    driver: bridge

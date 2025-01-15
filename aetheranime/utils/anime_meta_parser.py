@@ -31,12 +31,12 @@ def get_animes_by_name(
         }
 
     if name: params["search"] = f'"{name}"'
-    if status: params["status"] = status
+    if status: params["status"] = f'"{status}"'
 
     graphql_body = generate_graphql_request(
         "animes",
         params,
-        ["russian", "poster { originalUrl }", "score", "status", "id"],
+        ["russian", "poster { previewUrl }", "score", "status", "id"],
     )
 
     headers = {"User-Agent": "AetherAnime/1.0"}
@@ -50,14 +50,6 @@ def get_animes_by_name(
     return [
         anime_json for anime_json in (response.json())["data"]["animes"]
     ]
-
-
-def save_anime_to_db(anime_data: dict) -> Anime:
-    serializer = AnimeSerializer(data=anime_data)
-    if serializer.is_valid():
-        return serializer.save()
-    else:
-        raise ValueError(f"Invalid data: {serializer.errors}")
 
 
 def get_details(anime_id: int) -> Anime:
@@ -107,7 +99,7 @@ def get_details(anime_id: int) -> Anime:
         "duration": anime_data["duration"],
         "episodes": anime_data["episodes"],
         "episodes_aired": anime_data["episodesAired"],
-        "studios": ", ".join([studio["name"] for studio in anime_data["studios"]]),
+        "studios": [studio["name"] for studio in anime_data["studios"]],
         "fandubbers": anime_data["fandubbers"],
         "fansubbers": anime_data["fansubbers"],
         "release_date": anime_data["releasedOn"]["date"],
@@ -118,4 +110,4 @@ def get_details(anime_id: int) -> Anime:
     }
 
     # return anime_data
-    return save_anime_to_db(adapted_anime_data)
+    return adapted_anime_data

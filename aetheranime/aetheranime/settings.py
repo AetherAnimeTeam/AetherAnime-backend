@@ -12,8 +12,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from datetime import timedelta
 import os
-from pathlib import Path
 from dotenv import load_dotenv
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -35,7 +35,7 @@ allowed_hosts = os.environ.get("DJANGO_ALLOWED_HOSTS")
 if allowed_hosts:
     ALLOWED_HOSTS = allowed_hosts.split(" ")
 else:
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "[::1]"]
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "[::1]", "*"]
 
 
 AUTH_USER_MODEL = "user.CustomUser"
@@ -71,7 +71,7 @@ INSTALLED_APPS = [
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=6),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=180),
     "TOKEN_OBTAIN_SERIALIZER": "user.serializers.UserTokenObtainPairSerializer",
 }
@@ -91,9 +91,9 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -101,7 +101,11 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    "https://*"
+]
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -140,18 +144,23 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "aetheranime.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+environ.Env.read_env(os.path.join(BASE_DIR, '.env.dev'))
+
+env = environ.Env(
+    DEBUG=(bool, False)
+)
+
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "aetheranime",
-        "USER": "postgres",
-        "PASSWORD": "root",
-        "HOST": "db",
-        "PORT": "5432",
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT'),
         "OPTIONS": {
             "client_encoding": "UTF8",
         },
@@ -192,7 +201,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR + "staticfiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

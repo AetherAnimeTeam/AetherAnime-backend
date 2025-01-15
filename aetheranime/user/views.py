@@ -5,7 +5,7 @@ from django.core.cache import cache
 from django.contrib.auth import get_user_model
 from .utils import generate_verification_code, send_verification_email
 from .serializers import UserTokenObtainPairSerializer, UserRegistrationSerializer, UserUpdateSerializer
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from django.db.models import Count
 from .models import Status
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -31,7 +31,7 @@ class UserTokenObtainPairView(TokenObtainPairView):
         },
     )
     def post(self, request, *args, **kwargs):
-        user = User.objects.get(username=request.data['username'])
+        user = User.objects.get(email=request.data.get('email'))
         if not user.is_verified:
             return Response(status=status.HTTP_403_FORBIDDEN, data={'detail': 'Not verified'})
         return super().post(request, *args, **kwargs)
@@ -142,11 +142,13 @@ class VerifyEmailView(APIView):
         )
 
 class UserProfileView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def get(self, request):
+    def get(self, request, user_id=None):
         try:
-            user_id = request.user.id
+            if not user_id:
+                user_id = request.user.id
+
             user = User.objects.get(id=user_id)
             statuses = (
                 Status.objects.filter(user_id=user_id)
@@ -156,6 +158,7 @@ class UserProfileView(APIView):
             status_data = {status["status"]: status["count"] for status in statuses}
 
             user_data = {
+                "id": user.id,
                 "username": user.username,
                 "email": user.email,
                 "profile_picture": user.profile_picture.url if user.profile_picture else None,
