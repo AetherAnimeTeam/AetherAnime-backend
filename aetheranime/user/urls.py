@@ -17,3 +17,4 @@ urlpatterns = [
     path("<int:user_id>", UserProfileView.as_view(), name="user_profile"),
     path("send-code/", SendVerificationCode.as_view(), name="send_code"),
 ]
+
