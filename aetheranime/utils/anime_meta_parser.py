@@ -36,7 +36,7 @@ def get_animes_by_name(
     graphql_body = generate_graphql_request(
         "animes",
         params,
-        ["russian", "poster { previewUrl }", "score", "status", "id"],
+        ["russian", "poster { previewUrl miniAltUrl }", "score", "status", "id"],
     )
 
     headers = {"User-Agent": "AetherAnime/1.0"}

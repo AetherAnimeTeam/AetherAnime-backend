@@ -11,9 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from datetime import timedelta
-import os
 from dotenv import load_dotenv
-import environ
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -101,10 +100,9 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-# CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
-    "https://*"
 ]
 
 REST_FRAMEWORK = {
@@ -147,11 +145,11 @@ WSGI_APPLICATION = "aetheranime.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-environ.Env.read_env(os.path.join(BASE_DIR, '.env.dev'))
-
-env = environ.Env(
-    DEBUG=(bool, False)
-)
+# os.environ.Env.read_env(os.path.join(BASE_DIR, '.env.dev'))
+#
+# env = os.environ.Env(
+#     DEBUG=(bool, False)
+# )
 
 DATABASES = {
     "default": {
