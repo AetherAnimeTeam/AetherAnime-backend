@@ -84,6 +84,7 @@ class UserRegistrationView(APIView):
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class SendVerificationCode(APIView):
     def post(self, request):
         email = request.data.get('email')
@@ -105,6 +106,7 @@ class SendVerificationCode(APIView):
         )
 
         return Response({"message": "Verification code sent to email."}, status=status.HTTP_200_OK)
+
 
 class VerifyEmailView(APIView):
     def post(self, request):
@@ -141,6 +143,7 @@ class VerifyEmailView(APIView):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -148,6 +151,13 @@ class UserProfileView(APIView):
         try:
             if not user_id:
                 user_id = request.user.id
+
+            user = User.objects.get(id=user_id)
+            if not user.is_active:
+                return Response(
+                    {"error": "Аккаунт деактивирован."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
 
             user = User.objects.get(id=user_id)
             statuses = (
@@ -190,3 +200,15 @@ class UserProfileView(APIView):
                 {"error": "User not found."},
                 status=status.HTTP_404_NOT_FOUND,
             )
+
+
+class DeactivateAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        user.deactivate()  # Деактивируем аккаунт
+        return Response(
+            {"message": "Аккаунт успешно деактивирован."},
+            status=status.HTTP_200_OK,
+        )

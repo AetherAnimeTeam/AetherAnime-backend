@@ -46,6 +46,13 @@ class CustomUser(AbstractUser):
             self.tag = self.generate_unique_tag()
         super().save(*args, **kwargs)
 
+    def deactivate(self):
+        """
+        Деактивирует аккаунт пользователя.
+        """
+        self.is_active = False
+        self.save()
+
 
 class History(models.Model):
     anime_id = models.BigIntegerField()

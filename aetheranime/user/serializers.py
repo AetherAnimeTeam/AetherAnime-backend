@@ -9,6 +9,11 @@ from datetime import timedelta
 
 class UserTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
+        # Проверяем, активен ли пользователь
+        user = self.user
+        if not user.is_active:
+            raise serializers.ValidationError("Аккаунт деактивирован.")
+
         data = super().validate(attrs)
         data["expires_in"] = api_settings.ACCESS_TOKEN_LIFETIME.total_seconds()
         return data

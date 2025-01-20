@@ -2,6 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import (
+    DeactivateAccountView,
     UserRegistrationView,
     VerifyEmailView,
     UserProfileView,
@@ -16,5 +17,5 @@ urlpatterns = [
     path("", UserProfileView.as_view(), name="user_profile"),
     path("<int:user_id>", UserProfileView.as_view(), name="user_profile"),
     path("send-code/", SendVerificationCode.as_view(), name="send_code"),
+    path("deactivate/", DeactivateAccountView.as_view(), name="deactivate_account"),
 ]
-

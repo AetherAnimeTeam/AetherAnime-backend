@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404
-from .models import Comment
+from .models import Comment, CommentReaction
 from .serializers import CommentSerializer
 
 
@@ -57,3 +57,30 @@ class CommentAPIView(APIView):
         comment.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class CommentLikeAPIView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def post(self, request, anime_id, comment_id):
+        comment = get_object_or_404(Comment, pk=comment_id)
+        reaction, created = CommentReaction.objects.get_or_create(user=request.user, comment=comment)
+        if not created and reaction.reaction == True:
+            reaction.delete()
+        else:
+            reaction.reaction = True
+            reaction.save()
+        return Response({'status': 'success'})
+
+
+class CommentDislikeAPIView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def post(self, request, anime_id, comment_id):
+        comment = get_object_or_404(Comment, pk=comment_id)
+        reaction, created = CommentReaction.objects.get_or_create(user=request.user, comment=comment)
+        if not created and reaction.reaction == False:
+            reaction.delete()
+        else:
+            reaction.reaction = False
+            reaction.save()
+        return Response({'status': 'success'})

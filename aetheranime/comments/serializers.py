@@ -6,6 +6,9 @@ class CommentSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField()
     replies_n = serializers.SerializerMethodField()
     reply_to = serializers.PrimaryKeyRelatedField(queryset=Comment.objects.all(), required=False, allow_null=True)
+    like_count = serializers.SerializerMethodField()
+    dislike_count = serializers.SerializerMethodField()
+    user_reaction = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
@@ -18,8 +21,11 @@ class CommentSerializer(serializers.ModelSerializer):
             "created_at",
             "replies_n",
             "replies",
+            "like_count",
+            "dislike_count",
+            "user_reaction",
         ]
-    
+
     def get_replies(self, obj):
         if obj.replies.exists():
             return CommentSerializer(obj.replies.all()[:3], many=True).data
@@ -30,6 +36,20 @@ class CommentSerializer(serializers.ModelSerializer):
             return obj.replies.count()
         return 0
 
+    def get_like_count(self, obj):
+        return obj.reactions.filter(reaction=True).count()
+
+    def get_dislike_count(self, obj):
+        return obj.reactions.filter(reaction=False).count()
+
+    def get_user_reaction(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            reaction = obj.reactions.filter(user=user).first()
+            if reaction:
+                return reaction.reaction
+        return None
+
     def create(self, validated_data):
         """
         Переопределяем метод создания комментария, чтобы при создании ответа на комментарий
@@ -38,7 +58,7 @@ class CommentSerializer(serializers.ModelSerializer):
         reply_to = validated_data.get('reply_to', None)
         if reply_to:
             validated_data['reply_to'] = reply_to
-        
+
         # Создание нового комментария
         comment = Comment.objects.create(**validated_data)
         return comment

@@ -17,7 +17,7 @@ import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-load_dotenv(os.path.join(BASE_DIR, ".env"))
+load_dotenv(os.path.join(BASE_DIR, ".env.dev"))
 
 
 # Quick-start development settings - unsuitable for production
@@ -47,6 +47,7 @@ EMAIL_HOST_PASSWORD = "kcenkmgvutwuqytr"
 EMAIL_PORT = 465
 
 EMAIL_USE_SSL = True
+EMAIL_USE_TLS = False
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Application definition
@@ -67,8 +68,14 @@ INSTALLED_APPS = [
     "animes",
     "drf_spectacular",
     "django_extensions",
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
 
+SITE_ID = 1
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
@@ -80,6 +87,7 @@ SIMPLE_JWT = {
 AUTHENTICATION_BACKENDS = [
     "social_core.backends.google.GoogleOAuth2",
     "django.contrib.auth.backends.ModelBackend",
+    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = (
@@ -99,6 +107,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 # CORS_ALLOW_ALL_ORIGINS = True

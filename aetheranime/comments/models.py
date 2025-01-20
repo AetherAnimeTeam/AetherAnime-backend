@@ -39,3 +39,12 @@ class Review(models.Model):
     anime_id = models.IntegerField()
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class CommentReaction(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    comment = models.ForeignKey('Comment', on_delete=models.CASCADE, related_name='reactions')
+    reaction = models.BooleanField(null=True)
+
+    class Meta:
+        unique_together = ('user', 'comment')
