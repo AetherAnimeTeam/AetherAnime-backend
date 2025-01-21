@@ -10,9 +10,9 @@ def generate_verification_code():
 
 def send_verification_email(email, code):
     email = EmailMessage(
-        'Verify your email',
+        "Verify your email",
         f"Your verification code is: {code}",
         settings.EMAIL_HOST_USER,
-        [email]
+        [email],
     )
     email.send()

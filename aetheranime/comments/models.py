@@ -43,8 +43,10 @@ class Review(models.Model):
 
 class CommentReaction(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    comment = models.ForeignKey('Comment', on_delete=models.CASCADE, related_name='reactions')
+    comment = models.ForeignKey(
+        "Comment", on_delete=models.CASCADE, related_name="reactions"
+    )
     reaction = models.BooleanField(null=True)
 
     class Meta:
-        unique_together = ('user', 'comment')
+        unique_together = ("user", "comment")

@@ -26,7 +26,10 @@ class ListAnimeViewTests(APITestCase):
             },
         ]
 
-        url = reverse("list_anime", kwargs={"order": "popularity", "status": "latest", "page": 1, "limit": 10})
+        url = reverse(
+            "list_anime",
+            kwargs={"order": "popularity", "status": "latest", "page": 1, "limit": 10},
+        )
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
@@ -46,7 +49,15 @@ class ListAnimeViewTests(APITestCase):
             }
         ]
 
-        url = reverse("list_anime", kwargs={"order": "popularity", "status": "released", "page": 1, "limit": 10})
+        url = reverse(
+            "list_anime",
+            kwargs={
+                "order": "popularity",
+                "status": "released",
+                "page": 1,
+                "limit": 10,
+            },
+        )
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)

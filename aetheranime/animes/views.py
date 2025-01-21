@@ -1,11 +1,12 @@
 from typing import Optional
 
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from django.http import JsonResponse
 from django.db.models import Count
-from .models import Anime, AnimePreview, Genre
+from .models import Anime, AnimePreview, AnimeStatus, Genre
 from .serializers import AnimeSerializer, AnimePreviewSerializer
 from rest_framework.views import APIView
 from utils.anime_meta_parser import get_details
@@ -20,8 +21,15 @@ class ListAnimeView(APIView):
 
     serializer_class = AnimePreviewSerializer
 
-    def get(self, request, order: str="popularity",
-            status: str="latest", page: int=1, limit: int=10, name: Optional[str] = None):
+    def get(
+        self,
+        request,
+        order: str = "popularity",
+        status: str = "latest",
+        page: int = 1,
+        limit: int = 10,
+        name: Optional[str] = None,
+    ):
 
         animes = get_animes_by_name(order=order, status=status, page=page, limit=limit)
         serializer = self.serializer_class(animes, many=True)

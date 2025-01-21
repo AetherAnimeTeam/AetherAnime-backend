@@ -1,12 +1,11 @@
-from django.db.models import Count
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
-from django.shortcuts import get_object_or_404
 from .models import Comment, CommentReaction
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from .serializers import CommentSerializer
 
 
@@ -33,9 +32,13 @@ class CommentAPIView(APIView):
                 {"error": "text is required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        parent_comment = get_object_or_404(Comment, pk=comment_id) if comment_id else None
+        parent_comment = (
+            get_object_or_404(Comment, pk=comment_id) if comment_id else None
+        )
 
-        comment = Comment.objects.create(anime_id=anime_id, user=request.user, content=text, reply_to=parent_comment)
+        comment = Comment.objects.create(
+            anime_id=anime_id, user=request.user, content=text, reply_to=parent_comment
+        )
 
         serializer = CommentSerializer(comment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -58,18 +61,21 @@ class CommentAPIView(APIView):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
 class CommentLikeAPIView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def post(self, request, anime_id, comment_id):
         comment = get_object_or_404(Comment, pk=comment_id)
-        reaction, created = CommentReaction.objects.get_or_create(user=request.user, comment=comment)
+        reaction, created = CommentReaction.objects.get_or_create(
+            user=request.user, comment=comment
+        )
         if not created and reaction.reaction == True:
             reaction.delete()
         else:
             reaction.reaction = True
             reaction.save()
-        return Response({'status': 'success'})
+        return Response({"status": "success"})
 
 
 class CommentDislikeAPIView(APIView):
@@ -77,10 +83,12 @@ class CommentDislikeAPIView(APIView):
 
     def post(self, request, anime_id, comment_id):
         comment = get_object_or_404(Comment, pk=comment_id)
-        reaction, created = CommentReaction.objects.get_or_create(user=request.user, comment=comment)
+        reaction, created = CommentReaction.objects.get_or_create(
+            user=request.user, comment=comment
+        )
         if not created and reaction.reaction == False:
             reaction.delete()
         else:
             reaction.reaction = False
             reaction.save()
-        return Response({'status': 'success'})
+        return Response({"status": "success"})

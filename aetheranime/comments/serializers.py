@@ -5,7 +5,9 @@ from .models import Comment, WatchedHistory, AnimeStatus, Review
 class CommentSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField()
     replies_n = serializers.SerializerMethodField()
-    reply_to = serializers.PrimaryKeyRelatedField(queryset=Comment.objects.all(), required=False, allow_null=True)
+    reply_to = serializers.PrimaryKeyRelatedField(
+        queryset=Comment.objects.all(), required=False, allow_null=True
+    )
     like_count = serializers.SerializerMethodField()
     dislike_count = serializers.SerializerMethodField()
     user_reaction = serializers.SerializerMethodField()
@@ -43,7 +45,7 @@ class CommentSerializer(serializers.ModelSerializer):
         return obj.reactions.filter(reaction=False).count()
 
     def get_user_reaction(self, obj):
-        user = self.context['request'].user
+        user = self.context["request"].user
         if user.is_authenticated:
             reaction = obj.reactions.filter(user=user).first()
             if reaction:
@@ -55,9 +57,9 @@ class CommentSerializer(serializers.ModelSerializer):
         Переопределяем метод создания комментария, чтобы при создании ответа на комментарий
         корректно обрабатывался `reply_to`.
         """
-        reply_to = validated_data.get('reply_to', None)
+        reply_to = validated_data.get("reply_to", None)
         if reply_to:
-            validated_data['reply_to'] = reply_to
+            validated_data["reply_to"] = reply_to
 
         # Создание нового комментария
         comment = Comment.objects.create(**validated_data)

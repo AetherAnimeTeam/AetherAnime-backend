@@ -16,3 +16,5 @@ django-extensions
 gunicorn
 locust
 django-allauth
+wagtail
+django-taggit

@@ -14,6 +14,7 @@ class AnimePreviewSerializer(serializers.Serializer):
     score = serializers.FloatField()
     status = serializers.CharField()
     id = serializers.CharField()
+    releasedOn = serializers.DictField()
 
 
 class AnimeSerializer(serializers.Serializer):

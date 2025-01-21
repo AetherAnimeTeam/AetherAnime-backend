@@ -71,7 +71,9 @@ class VerifyEmailViewTests(APITestCase):
             is_verified=False,
         )
         self.verification_code = "123456"
-        cache.set(f"verification_code_test@example.com", self.verification_code, timeout=3600)
+        cache.set(
+            f"verification_code_test@example.com", self.verification_code, timeout=3600
+        )
 
     def test_verify_email_success(self):
         url = reverse("verify_email")

@@ -16,7 +16,9 @@ class AnimeUser(HttpUser):
         comment_data = {
             "text": "This is a test comment",
         }
-        self.client.post(f"/api/comments/{anime_id}/", json=comment_data, name="/api/comments/[id]/")
+        self.client.post(
+            f"/api/comments/{anime_id}/", json=comment_data, name="/api/comments/[id]/"
+        )
 
     @task(2)
     def register_user(self):

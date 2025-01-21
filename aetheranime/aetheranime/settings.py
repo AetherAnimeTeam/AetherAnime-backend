@@ -11,9 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from datetime import timedelta
-import os
 from dotenv import load_dotenv
-import environ
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -40,7 +39,7 @@ else:
 
 AUTH_USER_MODEL = "user.CustomUser"
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.yandex.ru"
 EMAIL_HOST_USER = "aetheranime@yandex.ru"
 EMAIL_HOST_PASSWORD = "kcenkmgvutwuqytr"
@@ -68,18 +67,33 @@ INSTALLED_APPS = [
     "animes",
     "drf_spectacular",
     "django_extensions",
-    'django.contrib.sites',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
+    "django.contrib.sites",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "wagtail.contrib.forms",
+    "wagtail.contrib.redirects",
+    "wagtail.embeds",
+    "wagtail.sites",
+    "wagtail.users",
+    "wagtail.snippets",
+    "wagtail.documents",
+    "wagtail.images",
+    "wagtail.search",
+    "wagtail.admin",
+    "wagtail",
+    "taggit",
+    "wagtail.contrib.modeladmin",
 ]
+
+WAGTAILADMIN_BASE_URL = "http://127.0.0.1:8000"
 
 SITE_ID = 1
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=180),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=180),
     "TOKEN_OBTAIN_SERIALIZER": "user.serializers.UserTokenObtainPairSerializer",
 }
 
@@ -87,7 +101,7 @@ SIMPLE_JWT = {
 AUTHENTICATION_BACKENDS = [
     "social_core.backends.google.GoogleOAuth2",
     "django.contrib.auth.backends.ModelBackend",
-    'allauth.account.auth_backends.AuthenticationBackend',
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = (
@@ -108,12 +122,12 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "wagtail.contrib.redirects.middleware.RedirectMiddleware",
 ]
 
-# CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    "https://*"
+    "http://localhost:3000",
 ]
 
 REST_FRAMEWORK = {
@@ -156,11 +170,11 @@ WSGI_APPLICATION = "aetheranime.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-environ.Env.read_env(os.path.join(BASE_DIR, '.env.dev'))
-
-env = environ.Env(
-    DEBUG=(bool, False)
-)
+# os.environ.Env.read_env(os.path.join(BASE_DIR, '.env.dev'))
+#
+# env = os.environ.Env(
+#     DEBUG=(bool, False)
+# )
 
 DATABASES = {
     "default": {

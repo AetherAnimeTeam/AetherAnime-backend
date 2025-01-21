@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser
+from .models import CustomUser, Status
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -49,14 +49,32 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'profile_picture', 'date_of_birth', 'tag']
+        fields = ["username", "email", "profile_picture", "date_of_birth", "tag"]
 
     def update(self, instance, validated_data):
         # Обновление данных пользователя
-        instance.username = validated_data.get('username', instance.username)
-        instance.email = validated_data.get('email', instance.email)
-        instance.profile_picture = validated_data.get('profile_picture', instance.profile_picture)
-        instance.date_of_birth = validated_data.get('date_of_birth', instance.date_of_birth)
-        instance.tag = validated_data.get('tag', instance.tag)
+        instance.username = validated_data.get("username", instance.username)
+        instance.email = validated_data.get("email", instance.email)
+        instance.profile_picture = validated_data.get(
+            "profile_picture", instance.profile_picture
+        )
+        instance.date_of_birth = validated_data.get(
+            "date_of_birth", instance.date_of_birth
+        )
+        instance.tag = validated_data.get("tag", instance.tag)
         instance.save()
         return instance
+
+
+class StatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Status
+        fields = ["anime_id", "status"]
+
+    def validate_status(self, value):
+        """
+        Проверяем, что статус допустим.
+        """
+        if value not in dict(Status.STATUS_CHOICES).keys():
+            raise serializers.ValidationError("Недопустимый статус.")
+        return value

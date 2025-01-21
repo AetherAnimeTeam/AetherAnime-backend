@@ -25,18 +25,27 @@ def get_animes_by_name(
     page: int = 1,
 ) -> list[AnimePreview]:
     params = {
-            "limit": limit,
-            "page": page,
-            "order": order,
-        }
+        "limit": limit,
+        "page": page,
+        "order": order,
+    }
 
-    if name: params["search"] = f'"{name}"'
-    if status: params["status"] = f'"{status}"'
+    if name:
+        params["search"] = f'"{name}"'
+    if status:
+        params["status"] = f'"{status}"'
 
     graphql_body = generate_graphql_request(
         "animes",
         params,
-        ["russian", "poster { previewUrl }", "score", "status", "id"],
+        [
+            "russian",
+            "poster { previewUrl miniAltUrl }",
+            "score",
+            "status",
+            "id",
+            "releasedOn { year }",
+        ],
     )
 
     headers = {"User-Agent": "AetherAnime/1.0"}
@@ -46,10 +55,11 @@ def get_animes_by_name(
         json={"query": graphql_body},
         headers=headers,
     )
+    data = (response.json())["data"]["animes"]
+    for anime in data:
+        anime["score"] = round(anime["score"], 1)
 
-    return [
-        anime_json for anime_json in (response.json())["data"]["animes"]
-    ]
+    return data
 
 
 def get_details(anime_id: int) -> Anime:
@@ -93,7 +103,7 @@ def get_details(anime_id: int) -> Anime:
         "description": anime_data.get("description", "Описание отсутствует"),
         "poster_url": anime_data["poster"]["originalUrl"],
         "genres": [{"id": g["id"], "name": g["russian"]} for g in anime_data["genres"]],
-        "score": anime_data["score"],
+        "score": round(anime_data["score"], 1),
         "score_count": sum(stat["count"] for stat in anime_data["scoresStats"]),
         "age_rating": anime_data["rating"],
         "duration": anime_data["duration"],
