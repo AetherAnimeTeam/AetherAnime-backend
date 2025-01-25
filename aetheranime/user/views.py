@@ -42,6 +42,8 @@ class UserTokenObtainPairView(TokenObtainPairView):
             return Response(
                 status=status.HTTP_403_FORBIDDEN, data={"detail": "Not verified"}
             )
+        if not user.is_active:
+            return Response(status=status.HTTP_403_FORBIDDEN, data={"detail": "Not active"})
         return super().post(request, *args, **kwargs)
 
 

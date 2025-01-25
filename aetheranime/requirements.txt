@@ -18,3 +18,4 @@ locust
 django-allauth
 wagtail
 django-taggit
+pre-commit
