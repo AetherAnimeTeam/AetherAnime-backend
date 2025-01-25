@@ -5,5 +5,5 @@ repos:
         name: Run Django Tests
         language: system
         stages: [pre-commit]
-        entry: bash -c "cd aetheranime && python manage.py test"
-        # entry: powershell -c "cd aetheranime; python manage.py test"
+        # entry: bash -c "cd aetheranime && python manage.py test"
+        entry: powershell -c "cd aetheranime; python manage.py test"

@@ -45,6 +45,10 @@ class CommentSerializer(serializers.ModelSerializer):
         return obj.reactions.filter(reaction=False).count()
 
     def get_user_reaction(self, obj):
+        # Проверяем, что контекст не пустой и содержит ключ "request"
+        if not self.context or "request" not in self.context:
+            return None
+
         user = self.context["request"].user
         if user.is_authenticated:
             reaction = obj.reactions.filter(user=user).first()

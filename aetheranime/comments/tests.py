@@ -1,8 +1,9 @@
 from django.urls import reverse
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from .models import Comment
+from .models import Comment, CommentReaction
+
 
 User = get_user_model()
 
@@ -74,3 +75,41 @@ class CommentAPIViewTests(APITestCase):
         url = reverse("replies", kwargs={"anime_id": 1, "comment_id": self.comment.id})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_get_user_reaction_with_context(self):
+        # Создаем пользователя
+        user = User.objects.create_user(
+            username="testuser",
+            email="testuser@example.com",
+            password="testpass"
+        )
+
+        another_user = User.objects.create_user(
+            username="otheruser",
+            email="otheruser@example.com",
+            password="testpass"
+        )
+
+        comment = Comment.objects.create(anime_id=1, user=user, content="Test comment")
+
+        CommentReaction.objects.create(user=user, comment=comment, reaction=True)
+
+        client = APIClient()
+        client.force_authenticate(user=user)
+
+        response = client.get(f"/api/comments/1/")
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()["results"]
+
+        returned_comment = next((item for item in data if item["id"] == comment.id), None)
+        self.assertIsNotNone(returned_comment, "Комментарий с заданным ID не найден в ответе")
+        self.assertEqual(returned_comment["user_reaction"], True)
+
+        client.force_authenticate(user=another_user)
+        response = client.get(f"/api/comments/1/")
+        data = response.json()["results"]
+
+        returned_comment = next((item for item in data if item["id"] == comment.id), None)
+        self.assertIsNotNone(returned_comment, "Комментарий с заданным ID не найден в ответе")
+        self.assertIsNone(returned_comment["user_reaction"])

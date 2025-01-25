@@ -22,7 +22,10 @@ class CommentAPIView(APIView):
         paginator.page_size = request.query_params.get("page_size", 20)
         paginated_comments = paginator.paginate_queryset(comments, request)
 
-        serializer = CommentSerializer(paginated_comments, many=True)
+        # Передаем контекст в сериализатор
+        serializer = CommentSerializer(
+            paginated_comments, many=True, context={"request": request}
+        )
         return paginator.get_paginated_response(serializer.data)
 
     def post(self, request, anime_id, comment_id=None):
@@ -40,7 +43,8 @@ class CommentAPIView(APIView):
             anime_id=anime_id, user=request.user, content=text, reply_to=parent_comment
         )
 
-        serializer = CommentSerializer(comment)
+        # Передаем контекст в сериализатор
+        serializer = CommentSerializer(comment, context={"request": request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, anime_id, comment_id):

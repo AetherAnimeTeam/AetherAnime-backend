@@ -16,6 +16,7 @@ class ListAnimeViewTests(APITestCase):
                 "score": 8.5,
                 "status": "released",
                 "id": "1",
+                "releasedOn": {"year": 2002, "month": 10, "day": 3},
             },
             {
                 "russian": "One Piece",
@@ -23,6 +24,7 @@ class ListAnimeViewTests(APITestCase):
                 "score": 7.5,
                 "status": "ongoing",
                 "id": "2",
+                "releasedOn": {"year": 1999, "month": 10, "day": 20},
             },
         ]
 
@@ -46,6 +48,7 @@ class ListAnimeViewTests(APITestCase):
                 "score": 8.5,
                 "status": "released",
                 "id": "1",
+                "releasedOn": {"year": 2002, "month": 10, "day": 3},
             }
         ]
 
@@ -75,6 +78,7 @@ class SearchAnimeViewTests(APITestCase):
                 "score": 8.5,
                 "status": "released",
                 "id": "1",
+                "releasedOn": {"year": 2002, "month": 10, "day": 3},
             }
         ]
 
