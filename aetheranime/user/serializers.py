@@ -10,7 +10,9 @@ from datetime import timedelta
 class UserTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         # Проверяем, активен ли пользователь
-        user = self.user
+        user = attrs.get('user')
+        if not user:
+            raise serializers.ValidationError('User not found')
         if not user.is_active:
             raise serializers.ValidationError("Аккаунт деактивирован.")
 
