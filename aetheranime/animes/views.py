@@ -1,17 +1,14 @@
 from typing import Optional
 
-from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.generics import ListAPIView, RetrieveAPIView
-from django.http import JsonResponse
-from django.db.models import Count
-from .models import Anime, AnimePreview, AnimeStatus, Genre
-from .serializers import AnimeSerializer, AnimePreviewSerializer
 from rest_framework.views import APIView
+from utils.anime_meta_parser import get_animes_by_name
 from utils.anime_meta_parser import get_details
 
-from utils.anime_meta_parser import get_animes_by_name
+from .serializers import AnimeSerializer, AnimePreviewSerializer
+from user.models import Status
 
 
 class ListAnimeView(APIView):
@@ -35,6 +32,24 @@ class ListAnimeView(APIView):
         serializer = self.serializer_class(animes, many=True)
 
         return Response(serializer.data)
+
+
+class SetStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, anime_id: int):
+        # try:
+        print(request.data)
+        s = Status.objects.get_or_create(anime_id=anime_id, user=request.user, defaults={"status": request.data["status"]})
+
+        if not s[1]:
+            s[0].status = request.data["status"]
+            s[0].save()
+        # except Exception as e:
+        #     print(e)
+        #     return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_200_OK)
 
 
 class SearchAnimeView(APIView):

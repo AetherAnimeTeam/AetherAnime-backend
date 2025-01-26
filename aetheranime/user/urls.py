@@ -8,7 +8,7 @@ from .views import (
     VerifyEmailView,
     UserProfileView,
     UserTokenObtainPairView,
-    SendVerificationCode,
+    SendVerificationCode, UserStatusView,
 )
 
 urlpatterns = [
@@ -20,9 +20,10 @@ urlpatterns = [
     path("<int:user_id>", UserProfileView.as_view(), name="user_profile"),
     path("send-code/", SendVerificationCode.as_view(), name="send_code"),
     path("deactivate/", DeactivateAccountView.as_view(), name="deactivate_account"),
-    path(
-        "user/<int:user_id>/anime/<int:anime_id>/set-status/",
-        SetAnimeStatusView.as_view(),
-        name="set_anime_status",
-    ),
+    # path(
+    #     "<int:user_id>/anime/<int:anime_id>/set-status/",
+    #     SetAnimeStatusView.as_view(),
+    #     name="set_anime_status",
+    # ),
+    path("status/<int:anime_id>", UserStatusView.as_view(), name="user_status"),
 ]

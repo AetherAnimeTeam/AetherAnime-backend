@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ListAnimeView, SearchAnimeView, AnimeDetailView
+from .views import ListAnimeView, SearchAnimeView, AnimeDetailView, SetStatusView
 
 urlpatterns = [
     path(
@@ -13,4 +13,5 @@ urlpatterns = [
         AnimeDetailView.as_view(),
         name="get_anime_detail",
     ),
+    path("status/<int:anime_id>/", SetStatusView.as_view(), name="set_status"),
 ]

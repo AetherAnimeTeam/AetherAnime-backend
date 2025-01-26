@@ -165,6 +165,13 @@ class VerifyEmailView(APIView):
         )
 
 
+class UserStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, anime_id):
+        user_status = get_object_or_404(Status, user=request.user, anime_id=anime_id)
+        return Response(StatusSerializer(user_status).data, status=status.HTTP_200_OK)
+
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
