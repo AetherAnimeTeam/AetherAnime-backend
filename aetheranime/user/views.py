@@ -172,6 +172,7 @@ class UserStatusView(APIView):
         user_status = get_object_or_404(Status, user=request.user, anime_id=anime_id)
         return Response(StatusSerializer(user_status).data, status=status.HTTP_200_OK)
 
+
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -282,3 +283,28 @@ class SetAnimeStatusView(APIView):
 
         serializer = StatusSerializer(status_obj)
         return Response({"message": message, "data": serializer.data}, status=status.HTTP_200_OK)
+
+
+class GetAnimeStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, user_id, anime_id):
+        # Проверяем, что пользователь запрашивает свой собственный статус
+        if request.user.id != user_id:
+            return Response(
+                {"error": "Вы не можете запрашивать статус другого пользователя."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Получаем пользователя и статус аниме
+        user = get_object_or_404(CustomUser, id=user_id)
+        try:
+            status_obj = Status.objects.get(user=user, anime_id=anime_id)
+            serializer = StatusSerializer(status_obj)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Status.DoesNotExist:
+            # Если статус не найден, возвращаем ответ с пустым статусом
+            return Response(
+                {"anime_id": anime_id, "status": None},
+                status=status.HTTP_200_OK,
+            )
