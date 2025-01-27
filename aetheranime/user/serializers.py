@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Status
+from .models import AnimeRating, CustomUser, Status
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -72,4 +72,18 @@ class StatusSerializer(serializers.ModelSerializer):
         """
         if value not in dict(Status.STATUS_CHOICES).keys():
             raise serializers.ValidationError("Недопустимый статус.")
+        return value
+
+
+class AnimeRatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AnimeRating
+        fields = ["anime_id", "score"]
+
+    def validate_score(self, value):
+        """
+        Проверяем, что оценка находится в диапазоне от 1 до 10.
+        """
+        if not (1 <= value <= 10):
+            raise serializers.ValidationError("Оценка должна быть от 1 до 10.")
         return value

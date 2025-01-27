@@ -2,7 +2,9 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import (
+    AnimeRatingView,
     DeactivateAccountView,
+    GetAnimeStatusView,
     SetAnimeStatusView,
     UserRegistrationView,
     VerifyEmailView,
@@ -26,4 +28,10 @@ urlpatterns = [
     #     name="set_anime_status",
     # ),
     path("status/<int:anime_id>", UserStatusView.as_view(), name="user_status"),
+    path("anime/<int:anime_id>/rating/", AnimeRatingView.as_view(), name="anime_rating"),
+    path(
+        "user/<int:user_id>/anime/<int:anime_id>/status/",
+        GetAnimeStatusView.as_view(),
+        name="get_anime_status",
+    ),
 ]

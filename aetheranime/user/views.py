@@ -6,6 +6,7 @@ from django.core.cache import cache
 from django.contrib.auth import get_user_model
 from .utils import generate_verification_code, send_verification_email
 from .serializers import (
+    AnimeRatingSerializer,
     StatusSerializer,
     UserTokenObtainPairSerializer,
     UserRegistrationSerializer,
@@ -13,7 +14,7 @@ from .serializers import (
 )
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from django.db.models import Count
-from .models import CustomUser, Status
+from .models import AnimeRating, CustomUser, Status
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
 
@@ -307,4 +308,77 @@ class GetAnimeStatusView(APIView):
             return Response(
                 {"anime_id": anime_id, "status": None},
                 status=status.HTTP_200_OK,
+            )
+
+
+class AnimeRatingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, anime_id):
+        """
+        Получает оценку аниме для текущего пользователя.
+        """
+        try:
+            rating = AnimeRating.objects.get(user=request.user, anime_id=anime_id)
+            serializer = AnimeRatingSerializer(rating)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except AnimeRating.DoesNotExist:
+            return Response(
+                {"anime_id": anime_id, "score": None},
+                status=status.HTTP_200_OK,
+            )
+
+    def post(self, request, anime_id):
+        """
+        Создает оценку аниме для текущего пользователя.
+        """
+        user = request.user
+        score = request.data.get("score")
+
+        if not score:
+            return Response(
+                {"error": "Поле 'score' обязательно."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Проверяем, существует ли уже оценка
+        if AnimeRating.objects.filter(user=user, anime_id=anime_id).exists():
+            return Response(
+                {"error": "Оценка уже существует. Используйте PUT для обновления."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        rating = AnimeRating.objects.create(user=user, anime_id=anime_id, score=score)
+        serializer = AnimeRatingSerializer(rating)
+        return Response(
+            {"message": "Оценка создана.", "data": serializer.data},
+            status=status.HTTP_201_CREATED,
+        )
+
+    def put(self, request, anime_id):
+        """
+        Обновляет оценку аниме для текущего пользователя.
+        """
+        user = request.user
+        score = request.data.get("score")
+
+        if not score:
+            return Response(
+                {"error": "Поле 'score' обязательно."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            rating = AnimeRating.objects.get(user=user, anime_id=anime_id)
+            rating.score = score
+            rating.save()
+            serializer = AnimeRatingSerializer(rating)
+            return Response(
+                {"message": "Оценка обновлена.", "data": serializer.data},
+                status=status.HTTP_200_OK,
+            )
+        except AnimeRating.DoesNotExist:
+            return Response(
+                {"error": "Оценка не найдена. Используйте POST для создания."},
+                status=status.HTTP_404_NOT_FOUND,
             )

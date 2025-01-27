@@ -155,3 +155,19 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"Comment by {self.user} for anime {self.anime_id}"
+
+
+class AnimeRating(models.Model):
+    user = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name="ratings",
+    )
+    anime_id = models.BigIntegerField()
+    score = models.PositiveSmallIntegerField()  # Оценка от 1 до 10
+
+    class Meta:
+        unique_together = ("user", "anime_id")  # Один пользователь может оценить аниме только один раз
+
+    def __str__(self):
+        return f"Rating by {self.user} for anime {self.anime_id}: {self.score}"
