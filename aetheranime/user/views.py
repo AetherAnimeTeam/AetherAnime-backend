@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.core.cache import cache
 from django.contrib.auth import get_user_model
+
+from aetheranime.comments.serializers import CommentSerializer
 from .utils import generate_verification_code, send_verification_email
 from .serializers import (
     AnimeRatingSerializer,
@@ -17,6 +19,7 @@ from django.db.models import Count
 from .models import AnimeRating, CustomUser, Status
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
+from rest_framework import generics
 
 User = get_user_model()
 
@@ -362,3 +365,15 @@ class AnimeRatingView(APIView):
             },
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
         )
+
+
+class UserCommentsView(generics.ListAPIView):
+    """
+    Представление для получения всех комментариев пользователя.
+    """
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Comment.objects.filter(user=user)

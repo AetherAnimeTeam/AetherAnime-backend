@@ -3,6 +3,7 @@ from .views import (
     CommentAPIView,
     CommentDislikeAPIView,
     CommentLikeAPIView,
+    UserCommentsAPIView,
 )
 
 urlpatterns = [
@@ -26,4 +27,5 @@ urlpatterns = [
         CommentDislikeAPIView.as_view(),
         name="comment-dislike",
     ),
+    path('user/<int:user_id>/comments/', UserCommentsAPIView.as_view(), name='user_comments'),
 ]

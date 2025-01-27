@@ -96,3 +96,20 @@ class CommentDislikeAPIView(APIView):
             reaction.reaction = False
             reaction.save()
         return Response({"status": "success"})
+
+
+class UserCommentsAPIView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request, user_id):
+        # Получаем все комментарии пользователя
+        comments = Comment.objects.filter(user_id=user_id)
+
+        # Пагинация
+        paginator = PageNumberPagination()
+        paginator.page_size = request.query_params.get("page_size", 20)
+        paginated_comments = paginator.paginate_queryset(comments, request)
+
+        # Сериализация и возврат данных
+        serializer = CommentSerializer(paginated_comments, many=True, context={"request": request})
+        return paginator.get_paginated_response(serializer.data)
