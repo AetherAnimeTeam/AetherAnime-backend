@@ -5,12 +5,13 @@ from .views import (
     AnimeRatingView,
     DeactivateAccountView,
     GetAnimeStatusView,
-    SetAnimeStatusView,
     UserRegistrationView,
+    UserStatusesAPIView,
     VerifyEmailView,
     UserProfileView,
     UserTokenObtainPairView,
-    SendVerificationCode, UserStatusView,
+    SendVerificationCode,
+    UserStatusView,
 )
 
 urlpatterns = [
@@ -34,4 +35,5 @@ urlpatterns = [
         GetAnimeStatusView.as_view(),
         name="get_anime_status",
     ),
+    path('<int:user_id>/statuses/', UserStatusesAPIView.as_view(), name='user_statuses'),
 ]

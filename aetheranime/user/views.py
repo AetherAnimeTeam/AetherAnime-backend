@@ -365,3 +365,15 @@ class AnimeRatingView(APIView):
             },
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
         )
+
+
+class UserStatusesAPIView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request, user_id):
+        # Получаем все статусы пользователя
+        statuses = Status.objects.filter(user_id=user_id)
+
+        # Сериализация и возврат данных
+        serializer = StatusSerializer(statuses, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
