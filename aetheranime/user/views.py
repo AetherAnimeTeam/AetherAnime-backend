@@ -365,15 +365,3 @@ class AnimeRatingView(APIView):
             },
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
         )
-
-
-class UserCommentsView(generics.ListAPIView):
-    """
-    Представление для получения всех комментариев пользователя.
-    """
-    serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-        return Comment.objects.filter(user=user)
