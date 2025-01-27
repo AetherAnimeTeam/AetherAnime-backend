@@ -330,7 +330,8 @@ class AnimeRatingView(APIView):
 
     def post(self, request, anime_id):
         """
-        Создает оценку аниме для текущего пользователя.
+        Создает или обновляет оценку аниме для текущего пользователя.
+        Если оценка уже существует, она обновляется. Если нет — создается.
         """
         user = request.user
         score = request.data.get("score")
@@ -341,44 +342,23 @@ class AnimeRatingView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Проверяем, существует ли уже оценка
-        if AnimeRating.objects.filter(user=user, anime_id=anime_id).exists():
-            return Response(
-                {"error": "Оценка уже существует. Используйте PUT для обновления."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        rating = AnimeRating.objects.create(user=user, anime_id=anime_id, score=score)
-        serializer = AnimeRatingSerializer(rating)
-        return Response(
-            {"message": "Оценка создана.", "data": serializer.data},
-            status=status.HTTP_201_CREATED,
+        # Используем get_or_create для поиска или создания оценки
+        rating, created = AnimeRating.objects.get_or_create(
+            user=user,
+            anime_id=anime_id,
+            defaults={"score": score},  # Значение по умолчанию, если оценка создается
         )
 
-    def put(self, request, anime_id):
-        """
-        Обновляет оценку аниме для текущего пользователя.
-        """
-        user = request.user
-        score = request.data.get("score")
-
-        if not score:
-            return Response(
-                {"error": "Поле 'score' обязательно."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            rating = AnimeRating.objects.get(user=user, anime_id=anime_id)
+        if not created:
+            # Если оценка уже существует, обновляем её
             rating.score = score
             rating.save()
-            serializer = AnimeRatingSerializer(rating)
-            return Response(
-                {"message": "Оценка обновлена.", "data": serializer.data},
-                status=status.HTTP_200_OK,
-            )
-        except AnimeRating.DoesNotExist:
-            return Response(
-                {"error": "Оценка не найдена. Используйте POST для создания."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+
+        serializer = AnimeRatingSerializer(rating)
+        return Response(
+            {
+                "message": "Оценка создана." if created else "Оценка обновлена.",
+                "data": serializer.data,
+            },
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
